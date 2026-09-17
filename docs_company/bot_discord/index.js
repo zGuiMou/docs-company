@@ -23,7 +23,7 @@ const rulesImageUrl = process.env.RULES_IMAGE_URL || 'https://i.imgur.com/raDRCc
 const developmentChannelId = process.env.DEVELOPMENT_CHANNEL_ID || '1550243018122989678';
 const faqChannelId = process.env.FAQ_CHANNEL_ID || '1550243118287159346';
 const rulesStateFile = path.join(__dirname, 'data', 'rules-state.json');
-const rulesVersion = 2;
+const rulesVersion = 3;
 
 if (!token || !apiKey) {
   console.error('Defina DISCORD_TOKEN e BOT_API_KEY antes de iniciar o bot.');
@@ -190,25 +190,34 @@ async function publishRulesOnce(readyClient) {
   }
 
   const channel = await readyClient.channels.fetch(rulesChannelId);
-  if (!channel || !channel.isTextBased() || typeof channel.send !== 'function') {
-    throw new Error('RULES_CHANNEL_ID não aponta para um canal de texto.');
+  if (!channel) throw new Error('RULES_CHANNEL_ID não aponta para um canal válido.');
+  if (savedState.rulesThreadId && savedState.version === rulesVersion) return;
+
+  let message;
+  if (channel.type === ChannelType.GuildForum) {
+    const thread = await channel.threads.create({ name: 'Regras da Docs. Company', message: { embeds: [rulesEmbed()] } });
+    await fs.mkdir(path.dirname(rulesStateFile), { recursive: true });
+    await fs.writeFile(rulesStateFile, JSON.stringify({ ...savedState, rulesThreadId: thread.id, version: rulesVersion, publishedAt: new Date().toISOString() }, null, 2), 'utf8');
+    console.log('Regras publicadas em tópico de fórum.');
+    return;
   }
+  if (!channel.isTextBased() || typeof channel.send !== 'function') {
+    throw new Error('RULES_CHANNEL_ID precisa ser um canal de fórum ou texto com suporte a threads.');
+  }
+
   if (savedState.messageId) {
-    if (savedState.version === rulesVersion) return;
     try {
-      const message = await channel.messages.fetch(savedState.messageId);
+      message = await channel.messages.fetch(savedState.messageId);
       await message.edit({ embeds: [rulesEmbed()] });
-      await fs.writeFile(rulesStateFile, JSON.stringify({ ...savedState, version: rulesVersion, updatedAt: new Date().toISOString() }, null, 2), 'utf8');
-      console.log('Mensagem de regras atualizada.');
-      return;
     } catch (error) {
-      console.warn('Não foi possível atualizar a mensagem anterior de regras:', error.message);
+      console.warn('Não foi possível reutilizar a mensagem anterior de regras:', error.message);
     }
   }
-  const message = await channel.send({ embeds: [rulesEmbed()] });
+  if (!message) message = await channel.send({ embeds: [rulesEmbed()] });
+  const thread = await message.startThread({ name: 'Regras da Docs. Company', autoArchiveDuration: 1440 });
   await fs.mkdir(path.dirname(rulesStateFile), { recursive: true });
-  await fs.writeFile(rulesStateFile, JSON.stringify({ messageId: message.id, version: rulesVersion, publishedAt: new Date().toISOString() }, null, 2), 'utf8');
-  console.log('Regras publicadas uma única vez no canal configurado.');
+  await fs.writeFile(rulesStateFile, JSON.stringify({ ...savedState, messageId: message.id, rulesThreadId: thread.id, version: rulesVersion, publishedAt: new Date().toISOString() }, null, 2), 'utf8');
+  console.log('Regras publicadas e vinculadas a uma thread.');
 }
 
 async function publishDevelopmentAnnouncementOnce(readyClient) {
