@@ -250,9 +250,8 @@ async function publishFaqThreadsOnce(readyClient) {
     if (channel.type === ChannelType.GuildForum) {
       thread = await channel.threads.create({ name: topic.title, message: { embeds: [faqEmbed(topic)] } });
     } else if (channel.isTextBased() && typeof channel.send === 'function') {
-      const starterMessage = await channel.send({ content: `🧵 **${topic.title}**` });
+      const starterMessage = await channel.send({ embeds: [faqEmbed(topic)] });
       thread = await starterMessage.startThread({ name: topic.title, autoArchiveDuration: 1440 });
-      await thread.send({ embeds: [faqEmbed(topic)] });
     } else {
       throw new Error('FAQ_CHANNEL_ID precisa ser um canal de fórum ou texto com suporte a threads.');
     }
