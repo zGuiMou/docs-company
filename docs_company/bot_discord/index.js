@@ -22,6 +22,7 @@ if (!token || !apiKey) {
 }
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const listingFilters = new Map();
 
 const statusChoices = [
   { name: 'Aberta', value: 'ABERTA' },
@@ -43,7 +44,9 @@ const commands = [
         .addStringOption((option) => option.setName('descricao').setDescription('Descrição.').setMaxLength(1000))
         .addStringOption((option) => option.setName('status').setDescription('Status inicial.').addChoices(...statusChoices)),
     )
-    .addSubcommand((subcommand) => subcommand.setName('listar').setDescription('Lista as licitações do site.').addStringOption((option) => option.setName('status').setDescription('Filtrar por status.').addChoices(...statusChoices)))
+    .addSubcommand((subcommand) => subcommand.setName('listar').setDescription('Lista as licitações do site.')
+      .addStringOption((option) => option.setName('status').setDescription('Filtrar por status.').addChoices(...statusChoices))
+      .addStringOption((option) => option.setName('entidade').setDescription('Filtrar por entidade.').setAutocomplete(true)))
     .addSubcommand((subcommand) =>
       subcommand.setName('ver').setDescription('Mostra uma licitação.').addStringOption((option) => option.setName('id').setDescription('Número, ex.: 36809/2026.').setRequired(true)),
     )
@@ -165,10 +168,20 @@ async function pageEmbedWithComments(contract, page, total) {
   const proposalData = await request('/api/bot/contratos/' + encodeURIComponent(contract.id) + '/propostas');
   return pageEmbed(contract, page, total, proposalData.proposals || []);
 }
-function pageButtons(page, total, contract) {
+function createListingFilter(entity, status) {
+  const token = Math.random().toString(36).slice(2, 12);
+  listingFilters.set(token, { entity, status });
+  return token;
+}
+
+function normalizeEntity(value) {
+  return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+}
+
+function pageButtons(page, total, contract, filterToken = '') {
   return [new ActionRowBuilder().addComponents(
-    new ButtonBuilder().setCustomId('lic-prev:' + page).setLabel('◀ Anterior').setStyle(ButtonStyle.Secondary).setDisabled(page === 0),
-    new ButtonBuilder().setCustomId('lic-next:' + page).setLabel('Próxima ▶').setStyle(ButtonStyle.Primary).setDisabled(page >= total - 1),
+    new ButtonBuilder().setCustomId('lic-prev:' + page + ':' + filterToken).setLabel('◀ Anterior').setStyle(ButtonStyle.Secondary).setDisabled(page === 0),
+    new ButtonBuilder().setCustomId('lic-next:' + page + ':' + filterToken).setLabel('Próxima ▶').setStyle(ButtonStyle.Primary).setDisabled(page >= total - 1),
     new ButtonBuilder().setCustomId('lic-proposal:' + contract.id).setLabel('Fazer proposta').setStyle(ButtonStyle.Success).setDisabled(contract.status === 'ENCERRADA'),
   )];
 }
@@ -255,14 +268,18 @@ client.on(Events.InteractionCreate, async (interaction) => {
       await interaction.showModal(proposalModal(proposalMatch[1]));
       return;
     }
-    const match = /^lic-(prev|next):(\d+)$/.exec(interaction.customId);
+    const match = /^lic-(prev|next):(\d+):([a-z0-9]*)$/.exec(interaction.customId);
     if (!match) return;
     await interaction.deferUpdate();
     const data = await request('/api/bot/contratos');
-    const contracts = data.contracts || [];
+    const filter = listingFilters.get(match[3]) || {};
+    const contracts = (data.contracts || []).filter((contract) =>
+      (!filter.status || contract.status === filter.status)
+      && (!filter.entity || normalizeEntity(contract.orgao) === normalizeEntity(filter.entity)),
+    );
     const page = Math.max(0, Math.min(contracts.length - 1, Number(match[2]) + (match[1] === 'next' ? 1 : -1)));
     const embed = await pageEmbedWithComments(contracts[page], page, contracts.length);
-    await interaction.editReply({ embeds: [embed], components: pageButtons(page, contracts.length, contracts[page]) });
+    await interaction.editReply({ embeds: [embed], components: pageButtons(page, contracts.length, contracts[page], match[3]) });
     return;
   }
   if (interaction.isModalSubmit() && interaction.customId.startsWith('lic-proposal-modal:')) {
@@ -302,6 +319,24 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
     return;
   }
+  if (interaction.isAutocomplete()) {
+    if (interaction.commandName !== 'licitacao' || interaction.options.getSubcommand() !== 'listar') return;
+    try {
+      const focused = interaction.options.getFocused();
+      if (focused.name !== 'entidade') return;
+      const data = await request('/api/bot/entidades');
+      const query = normalizeEntity(focused.value);
+      const choices = (data.entities || [])
+        .filter((entity) => !query || normalizeEntity(entity).includes(query))
+        .slice(0, 25)
+        .map((entity) => ({ name: entity.slice(0, 100), value: entity.slice(0, 100) }));
+      await interaction.respond(choices);
+    } catch (error) {
+      console.error('Erro ao carregar entidades:', error);
+      await interaction.respond([]);
+    }
+    return;
+  }
   if (!interaction.isChatInputCommand() || interaction.commandName !== 'licitacao') return;
 
   try {
@@ -310,10 +345,16 @@ client.on(Events.InteractionCreate, async (interaction) => {
     if (subcommand === 'listar') {
       const data = await request('/api/bot/contratos');
       const selectedStatus = interaction.options.getString('status');
-      const contracts = (data.contracts || []).filter((contract) => !selectedStatus || contract.status === selectedStatus);
+      const selectedEntity = interaction.options.getString('entidade');
+      const contracts = (data.contracts || []).filter((contract) =>
+        (!selectedStatus || contract.status === selectedStatus)
+        && (!selectedEntity || normalizeEntity(contract.orgao) === normalizeEntity(selectedEntity)),
+      );
       if (!contracts.length) { await interaction.reply({ content: 'Nenhuma licitação cadastrada.' }); return; }
       const embed = await pageEmbedWithComments(contracts[0], 0, contracts.length);
-      await interaction.reply({ content: '📋 **Licitações da Docs Company**', embeds: [embed], components: pageButtons(0, contracts.length, contracts[0]) });
+      const filterToken = createListingFilter(selectedEntity, selectedStatus);
+      const heading = selectedEntity ? `📋 **Licitações de ${selectedEntity}**` : '📋 **Licitações da Docs Company**';
+      await interaction.reply({ content: heading, embeds: [embed], components: pageButtons(0, contracts.length, contracts[0], filterToken) });
       return;
     }
     if (subcommand === 'ver') {

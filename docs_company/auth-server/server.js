@@ -573,6 +573,12 @@ function botContractView(contract) {
   const company = companies.find((item) => String(item.id) === String(contract.companyId) || item.name === contract.orgao);
   return { ...contract, companyLogo: company && company.logoUrl ? company.logoUrl : '' };
 }
+app.get('/api/bot/entidades', requireBotApiKey, (req, res) => {
+  const names = new Set();
+  companies.forEach((company) => { if (company.name) names.add(company.name); });
+  contracts.forEach((contract) => { if (contract.orgao) names.add(contract.orgao); });
+  res.json({ entities: [...names].sort((a, b) => a.localeCompare(b, 'pt-BR')) });
+});
 app.get('/api/bot/contratos', requireBotApiKey, (req, res) => res.json({ contracts: [...contracts].sort((a, b) => b.id - a.id).map(botContractView) }));
 app.get('/api/bot/contratos/:id', requireBotApiKey, (req, res) => {
   const contract = findBotContract(req.params.id);
