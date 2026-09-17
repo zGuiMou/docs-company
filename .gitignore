@@ -1,0 +1,10 @@
+.env
+docs_company/auth-server/.env
+auth-server/.env
+docs_company/auth-server/data/docs-company.json
+# Local env variations
+.env.*
+.env.local
+node_modules/
+npm-debug.log*
+dist/

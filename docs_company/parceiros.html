@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Entidades — Docs Company</title>
+  <style>
+    :root{
+      --bg:#05070a;--panel:#0a1017;--panel-soft:#0d141b;--text:#f5f7fa;--muted:#97a6b7;--line:rgba(255,255,255,.08);--blue:#5aa6ff;--blue-soft:rgba(90,166,255,.12);--shadow:0 24px 80px rgba(0,0,0,.28)
+    }
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at top,rgba(90,166,255,.12),transparent 18%),linear-gradient(180deg,#05070a,#091018 100%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}a{color:inherit;text-decoration:none}button{font:inherit}
+    .nav{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:20;width:min(1120px,calc(100% - 32px));display:flex;align-items:center;justify-content:center;padding:9px 12px;border:1px solid var(--line);background:rgba(5,7,10,.78);backdrop-filter:blur(18px);border-radius:15px;box-shadow:0 18px 40px rgba(0,0,0,.18)}
+    .brand-wrap{display:flex;flex-direction:row;align-items:center;gap:10px;position:absolute;left:18px}.brand{display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;letter-spacing:-.06em}.brand-text{display:inline-flex;align-items:flex-start;flex-direction:column;line-height:1}.brand-main{display:inline-flex;align-items:center;letter-spacing:-.06em}.brand-sub{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#aeb8c5;margin-top:4px}.dot{color:var(--blue)}.brand-mark{position:relative;width:48px;height:48px;display:block;transform-style:preserve-3d;transition:transform .25s ease,filter .25s ease;filter:drop-shadow(0 12px 22px rgba(43,102,255,.32));cursor:pointer}.brand-mark svg{width:100%;height:100%;display:block;overflow:visible}.brand-mark .mark-core{fill:#f5f7fa}.brand-mark .mark-cut{fill:#080c11}.brand-mark .mark-dot{fill:#2c6df6;filter:drop-shadow(0 0 18px rgba(44,109,246,.9))}.brand-mark:hover{filter:drop-shadow(0 18px 28px rgba(43,102,255,.5))}
+    .navlinks{display:flex;gap:3px}.navlinks a{padding:9px 13px;border:1px solid transparent;border-radius:8px;color:#aeb8c5;font-size:13px;transition:.2s}.navlinks a:hover,.navlinks a.active{color:#fff;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18)}
+    /* Discord button + user pill */
+    .discord-login{position:absolute;right:18px;top:10px;z-index:24;display:inline-flex;align-items:center;gap:10px;padding:9px 14px;border-radius:10px;background:linear-gradient(135deg,#ff8a00,#ffb347);color:#081017;font-weight:800;border:1px solid rgba(255,140,36,.16);box-shadow:0 10px 30px rgba(255,138,36,.12);font-size:13px;text-transform:uppercase}
+    .discord-login svg{width:18px;height:18px;display:block}
+    .user-pill{position:absolute;right:18px;top:10px;z-index:24;display:flex;align-items:center;gap:8px;height:38px;max-width:calc(100% - 36px);padding:4px 10px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.04);font-weight:700}
+    .user-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover}
+    .user-avatar.initials{display:grid;place-items:center;background:linear-gradient(135deg,#5aa6ff,#84c4ff);color:#07131d;font-weight:800;width:28px;height:28px;border-radius:50%}
+    .user-name{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#eaf6ff;font-size:13px}
+    .logout-btn{padding:6px 10px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);text-decoration:none;font-size:13px}
+    .page-top{padding:120px 24px 40px}.wrap{width:min(1180px,100%);margin:auto}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.2em;color:var(--blue);margin-bottom:20px}.section-title{font-size:clamp(42px,6vw,76px);line-height:.96;letter-spacing:-.07em;margin:0 0 18px}.section-lead{font-size:17px;line-height:1.7;color:var(--muted);max-width:760px;margin:0 0 32px}
+    .partner-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+    /* Raffle card and ranking table styles */
+    .raffle-card{margin:18px 0 28px;border-radius:14px;padding:18px;background:linear-gradient(180deg,rgba(8,12,18,.9),rgba(10,14,18,.95));border:1px solid rgba(90,166,255,.06);box-shadow:0 18px 40px rgba(0,0,0,.5);display:flex;align-items:center}
+    .raffle-body{display:flex;justify-content:space-between;gap:18px;width:100%;align-items:center}
+    .raffle-body p{margin:6px 0;color:var(--muted)}
+    .raffle-stats{display:flex;gap:14px;align-items:center}
+    .raffle-stats .stat{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));padding:12px;border-radius:10px;text-align:center;border:1px solid rgba(255,255,255,.03)}
+    .raffle-stats label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+    .raffle-stats .big{font-size:20px;font-weight:800;color:var(--text);margin-top:6px}
+
+    .controls{display:flex;justify-content:space-between;align-items:center;margin:14px 0}
+    .controls .sort-btn{padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.04);background:transparent;color:var(--muted);cursor:pointer;margin-right:8px}
+    .controls .sort-btn.active{background:linear-gradient(135deg,rgba(90,166,255,.12),rgba(90,166,255,.04));color:#eaf6ff;border-color:rgba(90,166,255,.28);box-shadow:0 8px 24px rgba(90,166,255,.07)}
+    .entity-tabs{display:flex;gap:10px;align-items:center}
+    .entity-tab{padding:9px 14px;border-radius:10px;border:1px solid transparent;background:#09101a;font-weight:900;letter-spacing:.06em;cursor:pointer}
+    .entity-tab[data-entity="EMPRESA"]{color:#84c4ff;border-color:rgba(90,166,255,.52);box-shadow:0 0 16px rgba(90,166,255,.16)}
+    .entity-tab[data-entity="PREFEITURA"]{color:#ffb26b;border-color:rgba(255,178,107,.55);box-shadow:0 0 16px rgba(255,146,74,.16)}
+    .entity-tab[data-entity="BIG_TECH"]{color:#66f7a6;border-color:rgba(102,247,166,.55);box-shadow:0 0 16px rgba(102,247,166,.18)}
+    .entity-tab.active[data-entity="EMPRESA"]{background:#0b2746;box-shadow:0 0 24px rgba(90,166,255,.4)}
+    .entity-tab.active[data-entity="PREFEITURA"]{background:#4a210c;box-shadow:0 0 24px rgba(255,146,74,.4)}
+    .entity-tab.active[data-entity="BIG_TECH"]{background:#073623;box-shadow:0 0 24px rgba(102,247,166,.42)}
+    .entity-notice{margin:0 0 24px;padding:18px 20px;border:1px solid rgba(90,166,255,.3);border-radius:14px;background:linear-gradient(135deg,rgba(90,166,255,.1),rgba(8,18,30,.72));box-shadow:0 14px 30px rgba(0,0,0,.12)}.entity-notice strong{display:block;color:#eaf6ff;margin-bottom:6px}.entity-notice p{margin:0;color:var(--muted);line-height:1.65;font-size:14px}.entity-notice a{color:#84c4ff;font-weight:800}
+
+    .table-wrap{overflow:auto;border-radius:12px;border:1px solid rgba(255,255,255,.04);background:linear-gradient(180deg,rgba(8,12,18,.7),rgba(6,9,11,.8));padding:8px}
+    .ranking-table{width:100%;border-collapse:collapse;min-width:820px}
+    .ranking-table thead th{padding:12px 14px;text-align:left;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;border-bottom:1px solid rgba(255,255,255,.04)}
+    .ranking-table tbody td{padding:14px;border-bottom:1px solid rgba(255,255,255,.03);vertical-align:middle;color:var(--text)}
+    .company-cell{display:flex;align-items:center;gap:12px}
+    .company-logo{width:48px;height:48px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#5aa6ff,#84c4ff);color:#07131d;font-weight:900;overflow:hidden}.company-logo img{width:100%;height:100%;object-fit:cover}
+    .ticket-badge{background:linear-gradient(135deg,#ffdca8,#ffb26b);padding:6px 10px;border-radius:999px;font-weight:700;color:#2b1b00}
+
+    @media(max-width:900px){.raffle-body{flex-direction:column;align-items:flex-start}.table-wrap{padding:6px}.company-logo{width:40px;height:40px}}
+    .partner{width:100%;display:grid;grid-template-columns:68px minmax(0,1fr) auto;gap:18px;align-items:center;padding:22px 18px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(13,20,27,.86),rgba(8,12,18,.9));border-radius:18px;cursor:pointer;text-align:left;color:var(--text);transition:.25s;box-shadow:0 18px 40px rgba(0,0,0,.14)}
+    .partner:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.14);background:linear-gradient(180deg,rgba(15,24,33,.96),rgba(9,12,17,.96))}
+    .partner-logo{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,#5aa6ff,#84c4ff);color:#07131d;font-weight:900;font-size:24px;letter-spacing:-.06em;box-shadow:0 16px 32px rgba(90,166,255,.28)}
+    .partner small{display:block;color:var(--blue);font-size:10px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px}.partner h2{margin:0 0 6px;font-size:24px;letter-spacing:-.05em}.partner p{margin:0;color:var(--muted);font-size:14px;line-height:1.6}.partner-arrow{font-size:24px;color:var(--muted);opacity:.8}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:24px;z-index:30}.modal.show{display:flex}.modal-card{width:min(820px,100%);background:linear-gradient(180deg,#0b1219,#090d12);border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:var(--shadow)}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line)}.modal-header h3{margin:0;font-size:24px;letter-spacing:-.05em}.modal-close{width:42px;height:42px;border:1px solid var(--line);background:transparent;color:var(--text);border-radius:10px;cursor:pointer;font-size:22px}
+    .modal-body{padding:22px}.profile-shell{display:grid;grid-template-columns:220px minmax(0,1fr);gap:22px}.profile-hero{padding:22px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.02)}
+    .profile-logo{width:92px;height:92px;border-radius:24px;background:linear-gradient(135deg,#5aa6ff,#9cc8ff);display:grid;place-items:center;color:#041018;font-weight:900;font-size:38px;letter-spacing:-.06em;margin-bottom:18px;box-shadow:0 18px 40px rgba(90,166,255,.2)}
+    .profile-hero small{display:block;color:var(--blue);font-size:10px;letter-spacing:.18em;text-transform:uppercase}.profile-hero h4{margin:12px 0 10px;font-size:28px;letter-spacing:-.05em}.profile-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}.profile-meta .item{padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.02)}.profile-meta .item span{display:block;color:var(--muted);font-size:10px;letter-spacing:.12em;text-transform:uppercase}.profile-meta .item strong{display:block;margin-top:8px;font-size:18px;letter-spacing:-.04em}
+    .profile-copy{padding:22px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.02)}.profile-copy p{margin:0 0 18px;color:var(--muted);line-height:1.75}.profile-copy h5{margin:0 0 12px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--blue)}
+    .service-list{margin:0;padding-left:18px;color:var(--muted);line-height:1.8}
+    footer{border-top:1px solid var(--line);padding:30px 24px;color:#687382;font-size:12px}.footer{width:min(1080px,100%);margin:auto;display:grid;grid-template-columns:1fr 2fr 1fr;gap:30px;align-items:center}.footer-brand{font-size:20px;font-weight:900;color:#dfe5ed;letter-spacing:-.06em}.footer-note{line-height:1.65;border-left:1px solid #34404e;padding-left:30px}.footer-links{display:flex;justify-content:flex-end;gap:15px}.footer-links a:hover{color:#fff}
+    @media(max-width:800px){.brand{position:static}.nav{justify-content:space-between}.navlinks{margin-left:auto}.partner-grid{grid-template-columns:1fr}.profile-shell{grid-template-columns:1fr}.footer{grid-template-columns:1fr}.footer-note{border-left:0;border-top:1px solid #34404e;padding:20px 0 0}.footer-links{justify-content:flex-start}}
+    @media(max-width:600px){.nav{top:10px;width:calc(100% - 20px)}.brand{display:none}.navlinks{width:100%;justify-content:center}.navlinks a{padding:8px 7px;font-size:11px}.page-top{padding-left:18px;padding-right:18px}.partner{grid-template-columns:52px 1fr auto}.partner-logo{width:46px;height:46px;font-size:20px;border-radius:14px}.partner h2{font-size:20px}.modal-body{padding:16px}.profile-meta{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="index.html"><span class="brand-wrap"><span class="brand-mark" aria-label="Logo DOCS"><svg viewBox="0 0 120 120" role="img" aria-hidden="true"><path class="mark-core" d="M30 16H62C90 16 108 34 108 60C108 86 90 104 62 104H30V16ZM52 36V84H62C77 84 88 76 88 60C88 44 77 36 62 36H52Z"/><path class="mark-cut" d="M60 38H62C74 38 82 47 82 60C82 73 74 82 62 82H60V38Z"/><circle class="mark-dot" cx="94" cy="90" r="14"/></svg></span><span class="brand-text"><span class="brand-main">DOCS<span class="dot">.</span></span><span class="brand-sub">Company</span></span></span></a>
+    <nav class="navlinks">
+      <a href="index.html">Início</a>
+      <a href="servicos.html">Nossas Soluções</a>
+      <a href="licitacoes.html">Licitações e Contratos</a>
+      <a class="active" href="parceiros.html">Entidades</a>
+    </nav>
+    <div id="authArea">
+      <a class="discord-login" href="http://localhost:3000/auth/discord" title="Entrar com Discord">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="#081017" d="M20.317 4.369A19.791 19.791 0 0 0 16.993 3c-.24.428-.52.99-.714 1.435-2.13 0-4.26 0-6.39 0-.194-.445-.474-1.007-.714-1.435A19.791 19.791 0 0 0 3.683 4.37C2.07 8.229 1.728 11.999 2 15.708c4.21 3.09 8.29 3.674 11.26 3.4.84-.07 1.65-.2 2.42-.37.18-.04.36-.11.53-.18.01 0 .02-.01.03-.01.23-.1.34-.31.28-.57-.21-.76-.44-1.52-.7-2.26-.03-.09-.07-.18-.12-.27-.02-.04-.05-.07-.08-.11-.1-.12-.2-.23-.31-.34-.05-.05-.11-.09-.16-.14-.12-.11-.25-.22-.38-.33-.15-.12-.29-.25-.44-.37-.19-.16-.36-.33-.53-.5-.14-.14-.28-.28-.41-.42-.13-.13-.25-.27-.37-.4-.04-.05-.07-.09-.11-.14l-.01-.01c-.22-.28-.43-.57-.63-.86-.08-.12-.16-.24-.24-.36-.09-.12-.18-.24-.27-.36-.11-.14-.22-.28-.33-.42-.08-.11-.17-.22-.26-.33-.12-.15-.25-.3-.38-.45-.08-.09-.17-.18-.25-.27-.09-.09-.19-.18-.28-.27-.16-.16-.32-.33-.48-.49-.07-.08-.14-.15-.21-.23-.07-.07-.14-.14-.21-.21-.08-.08-.16-.16-.24-.24C12.66 8.41 12.5 8.24 12.33 8.08c-.06-.06-.12-.12-.18-.18-.22-.21-.45-.42-.67-.63"/></svg>
+        Entrar com Discord
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section class="section page-top">
+      <div class="wrap">
+        <div class="eyebrow">REDE DOCS · ENTIDADES DO CONTINENTE</div>
+        <h1 class="section-title">Entidades<span class="dot">.</span></h1>
+        <p class="section-lead">Um catálogo para conhecer entidades públicas e privadas do continente. Consulte seus ramos de atuação, informações institucionais, avaliações e comentários da comunidade.</p>
+        <aside class="entity-notice">
+          <strong>Sua empresa já está listada?</strong>
+          <p>Entre em contato com a equipe da Docs. Company para vincular seu usuário à entidade. Após a vinculação, você poderá criar e administrar as licitações da sua empresa. Caso sua empresa ainda não esteja no catálogo, envie a documentação necessária pelo nosso <a href="https://discord.gg/qvFy6pyEU" target="_blank" rel="noopener noreferrer">Discord</a> para solicitarmos o cadastro.</p>
+        </aside>
+
+        <div class="controls">
+          <div class="entity-tabs" aria-label="Tipo de entidade">
+            <button class="entity-tab active" type="button" data-entity="EMPRESA">EMPRESAS</button>
+            <button class="entity-tab" type="button" data-entity="PREFEITURA">PREFEITURAS</button>
+            <button class="entity-tab" type="button" data-entity="BIG_TECH">BIG TECHS</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table id="rankingTable" class="ranking-table">
+            <thead>
+              <tr>
+                <th id="entityColumnTitle">Empresa</th>
+                <th>Avaliação</th>
+                <th>Opiniões</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody id="rankingBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal" id="partnerModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Perfil da entidade</h3>
+        <button class="modal-close" type="button" aria-label="Fechar" id="closeModal">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="profile-shell">
+          <div class="profile-hero">
+            <div class="profile-logo" id="profileLogo">E</div>
+            <small id="profileChannel">Ramo de atuação</small>
+            <h4 id="profileName">Entidade</h4>
+            <div class="profile-meta">
+              <div class="item"><span>Avaliação média</span><strong id="profileRating">Sem avaliações</strong></div>
+              <div class="item"><span>Opiniões</span><strong id="profileRatingCount">0</strong></div>
+            </div>
+          </div>
+
+          <div class="profile-copy">
+            <p id="profileDescription"></p>
+            <div id="ratingComposer" style="display:none;padding:12px;border:1px solid rgba(90,166,255,.3);border-radius:10px;background:rgba(90,166,255,.06)"><strong style="font-size:13px">Como você avalia esta entidade?</strong><div style="display:flex;gap:8px;margin-top:8px"><select id="companyRatingValue" style="flex:1;padding:8px;border-radius:7px;background:#081421;color:var(--text);border:1px solid var(--line)"><option value="5">5 — Excelente</option><option value="4">4 — Muito boa</option><option value="3">3 — Boa</option><option value="2">2 — Regular</option><option value="1">1 — Ruim</option></select><button type="button" id="sendCompanyRating">Avaliar</button></div></div>
+            <div style="display:flex;gap:8px;margin:18px 0 12px">
+              <button type="button" class="sort-btn active" data-profile-tab="details">Detalhes</button>
+              <button type="button" class="sort-btn" data-profile-tab="comments">Comentários</button>
+            </div>
+            <div id="profileDetailsTab"><h5>Principais soluções</h5><ul class="service-list" id="profileServices"></ul></div>
+            <div id="profileCommentsTab" style="display:none">
+              <div id="companyCommentsList"></div>
+              <div id="companyCommentComposer" style="display:none;margin-top:14px"><textarea id="companyCommentBody" rows="3" placeholder="Escreva um comentário" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:#081421;color:var(--text)"></textarea><button type="button" id="sendCompanyComment" style="margin-top:8px;padding:8px 12px;border-radius:8px;border:1px solid rgba(90,166,255,.4);background:linear-gradient(135deg,#5aa6ff,#84c4ff);color:#041018;font-weight:800">Enviar comentário</button></div>
+            </div>
+            <div id="companyAdminActions" style="display:none;gap:8px;margin-top:18px"><button type="button" id="editCompanyBtn">Editar entidade</button><button type="button" id="deleteCompanyBtn">Excluir entidade</button></div>
+            <div id="companyEditPanel" style="display:none;margin-top:14px"><label>Nome<br><input id="editCompanyName" style="width:100%"></label><label>Tipo de entidade<br><select id="editCompanyEntityType" style="width:100%"><option value="EMPRESA">Empresa</option><option value="PREFEITURA">Prefeitura</option><option value="BIG_TECH">Big Tech</option></select></label><label>Ramo de atuação<br><input id="editCompanyIndustry" placeholder="Ex.: Metalúrgica, Alimentos, Energia" style="width:100%"></label><label>URL da foto (HTTPS)<br><input id="editCompanyLogo" style="width:100%"></label><label>Descrição<br><textarea id="editCompanyDescription" rows="4" style="width:100%"></textarea></label><button type="button" id="saveCompanyBtn" style="margin-top:10px">Salvar alterações</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer">
+      <div class="footer-brand">DOCS<span class="dot">.</span></div>
+      <div class="footer-note">Empresa do universo <strong>Expresso Continental</strong>, criada exclusivamente para fins de roleplay. Não possui vínculo com empresas de terceiros ou prefeituras no servidor.</div>
+      <div class="footer-links">
+        <button type="button" class="footer-popup-trigger" data-footer-popup="terms">Termos de Uso</button>
+        <button type="button" class="footer-popup-trigger" data-footer-popup="cookies">Cookies</button>
+        <button type="button" class="footer-popup-trigger" data-footer-popup="careers">Trabalhe Conosco</button>
+      </div>
+    </div>
+  </footer>
+
+  <script src="runtime-api.js"></script>
+  <script>
+    const brandMark = document.querySelector('.brand-mark');
+    if (brandMark) {
+      const reset = () => {
+        brandMark.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+        brandMark.style.filter = 'drop-shadow(0 12px 22px rgba(43,102,255,.32))';
+      };
+
+      brandMark.addEventListener('pointermove', (event) => {
+        const rect = brandMark.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width;
+        const y = (event.clientY - rect.top) / rect.height;
+        const rotateY = (x - 0.5) * 18;
+        const rotateX = (0.5 - y) * 18;
+
+        brandMark.style.transform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+        brandMark.style.filter = `drop-shadow(${rotateY * 0.8}px ${rotateX * -0.8}px 22px rgba(43,102,255,.5))`;
+      });
+
+      brandMark.addEventListener('pointerleave', reset);
+      reset();
+    }
+    const partners = [];
+
+    const rankingBody = document.getElementById('rankingBody');
+    const modal = document.getElementById('partnerModal');
+    const closeModal = document.getElementById('closeModal');
+    let selectedPartner = null;
+    let selectedEntityType = 'EMPRESA';
+    window.docsIsAdmin = false;
+
+    function formatCurrency(v){ return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL',minimumFractionDigits:0}); }
+
+    function escapeHtml(value){
+      const node = document.createElement('div');
+      node.textContent = value == null ? '' : String(value);
+      return node.innerHTML;
+    }
+
+    function renderRanking(){
+      const list = partners
+        .filter(partner => partner.entityType === selectedEntityType)
+        .sort((a,b)=>a.name.localeCompare(b.name, 'pt-BR', { sensitivity:'base' }));
+      document.getElementById('entityColumnTitle').textContent = selectedEntityType === 'PREFEITURA' ? 'Prefeitura' : selectedEntityType === 'BIG_TECH' ? 'Big Tech' : 'Empresa';
+
+      rankingBody.innerHTML = list.map(p=>{
+        const logo = p.logoUrl ? `<img src="${escapeHtml(p.logoUrl)}" alt="">` : escapeHtml(p.initials);
+        return `
+          <tr>
+            <td class="company-cell"><div class="company-logo">${logo}</div><div><strong>${escapeHtml(p.name)}</strong><div style="color:var(--muted);font-size:13px">${escapeHtml(p.category)}</div></div></td>
+            <td>${p.ratingCount ? `${'★'.repeat(Math.round(p.rating))} ${p.rating.toFixed(1)}` : 'Sem avaliações'}</td>
+            <td>${p.ratingCount || 0}</td>
+            <td><button class="view-btn" data-id="${p.id}">Ver Detalhes</button></td>
+          </tr>
+        `;
+      }).join('');
+
+      // attach listeners
+      rankingBody.querySelectorAll('.view-btn').forEach(btn=>btn.addEventListener('click',()=>openPartner(btn.dataset.id)));
+
+    }
+
+    function openPartner(id){
+      const partner = partners.find(p=>String(p.id) === String(id));
+      if(!partner) return;
+      selectedPartner = partner;
+      document.getElementById('profileLogo').textContent = partner.logoUrl ? '' : partner.initials;
+      document.getElementById('profileLogo').style.backgroundImage = partner.logoUrl ? `url("${partner.logoUrl}")` : '';
+      document.getElementById('profileLogo').style.backgroundSize = 'cover';
+      document.getElementById('profileLogo').style.backgroundPosition = 'center';
+      document.getElementById('profileChannel').textContent = partner.category;
+      document.getElementById('profileName').textContent = partner.name;
+      document.getElementById('profileRating').textContent = partner.ratingCount ? `${partner.rating.toFixed(1)} / 5` : 'Sem avaliações';
+      document.getElementById('profileRatingCount').textContent = partner.ratingCount || 0;
+      document.getElementById('profileDescription').textContent = partner.summary;
+      document.getElementById('profileServices').innerHTML = partner.services.map(s=>`<li>${s}</li>`).join('');
+      const canManage = Boolean(window.docsIsAdmin && partner.isRegistered);
+      document.getElementById('companyAdminActions').style.display = canManage ? 'flex' : 'none';
+      document.getElementById('companyEditPanel').style.display = 'none';
+      document.getElementById('companyCommentComposer').style.display = partner.isRegistered && window.docsCurrentUser ? 'block' : 'none';
+      document.getElementById('ratingComposer').style.display = partner.isRegistered && window.docsCurrentUser ? 'block' : 'none';
+      loadCompanyComments(partner.id);
+      loadCompanyRatings(partner.id);
+      modal.classList.add('show'); modal.setAttribute('aria-hidden','false');
+    }
+
+    function renderCompanyComments(comments){
+      const list = document.getElementById('companyCommentsList'); list.replaceChildren();
+      if(!comments.length){ list.appendChild(Object.assign(document.createElement('p'), { textContent: 'Ainda não há comentários.' })); return; }
+      comments.forEach(comment => {
+        const item = document.createElement('article'); item.style.cssText = 'padding:12px 0;border-bottom:1px solid var(--line)';
+        const author = document.createElement('strong'); author.textContent = comment.user.username;
+        const body = document.createElement('div'); body.textContent = comment.body; body.style.cssText = 'margin-top:6px;white-space:pre-wrap;tab-size:4';
+        item.append(author, body);
+        if(window.docsIsAdmin){
+          const edit = document.createElement('button'); edit.type='button'; edit.textContent='Editar'; edit.dataset.commentId=comment.id; edit.dataset.action='edit';
+          const remove = document.createElement('button'); remove.type='button'; remove.textContent='Excluir'; remove.dataset.commentId=comment.id; remove.dataset.action='delete';
+          item.append(edit, remove);
+        }
+        list.appendChild(item);
+      });
+    }
+
+    async function loadCompanyComments(companyId){
+      if(!selectedPartner || !selectedPartner.isRegistered){ renderCompanyComments([]); return; }
+      const response = await fetch(`http://localhost:3000/api/empresas/${encodeURIComponent(companyId)}/comentarios`);
+      const data = await response.json(); renderCompanyComments(data.comments || []);
+    }
+
+    async function loadCompanyRatings(companyId){
+      if(!selectedPartner || !selectedPartner.isRegistered) return;
+      const response = await fetch(`http://localhost:3000/api/empresas/${encodeURIComponent(companyId)}/avaliacoes`, { credentials:'include' });
+      if(!response.ok) return;
+      const data = await response.json();
+      selectedPartner.rating = Number(data.average) || 0;
+      selectedPartner.ratingCount = Number(data.count) || 0;
+      document.getElementById('profileRating').textContent = data.count ? `${Number(data.average).toFixed(1)} / 5` : 'Sem avaliações';
+      document.getElementById('profileRatingCount').textContent = data.count || 0;
+      if(data.myRating) document.getElementById('companyRatingValue').value = String(data.myRating);
+      renderRanking();
+    }
+
+    document.querySelectorAll('[data-profile-tab]').forEach(button => button.addEventListener('click', () => {
+      const comments = button.dataset.profileTab === 'comments';
+      document.getElementById('profileDetailsTab').style.display = comments ? 'none' : 'block';
+      document.getElementById('profileCommentsTab').style.display = comments ? 'block' : 'none';
+      document.querySelectorAll('[data-profile-tab]').forEach(tab => tab.classList.toggle('active', tab === button));
+    }));
+    document.getElementById('sendCompanyComment').addEventListener('click', async () => {
+      const body = document.getElementById('companyCommentBody').value.trim();
+      if(!selectedPartner || !body) return;
+      const response = await fetch(`http://localhost:3000/api/empresas/${selectedPartner.id}/comentarios`, { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify({body}) });
+      if(!response.ok){ alert('Não foi possível enviar o comentário.'); return; }
+      document.getElementById('companyCommentBody').value=''; loadCompanyComments(selectedPartner.id);
+    });
+    document.getElementById('sendCompanyRating').addEventListener('click', async () => {
+      if(!selectedPartner) return;
+      const value = Number(document.getElementById('companyRatingValue').value);
+      const response = await fetch(`http://localhost:3000/api/empresas/${selectedPartner.id}/avaliacoes`, { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify({value}) });
+      if(!response.ok){ alert('Não foi possível registrar sua avaliação.'); return; }
+      loadCompanyRatings(selectedPartner.id);
+    });
+    document.getElementById('companyCommentsList').addEventListener('click', async event => {
+      const button = event.target.closest('button[data-comment-id]'); if(!button || !window.docsIsAdmin) return;
+      if(button.dataset.action === 'delete'){
+        if(!confirm('Excluir este comentário?')) return;
+        await fetch(`http://localhost:3000/api/comentarios/${button.dataset.commentId}`, {method:'DELETE',credentials:'include'});
+      } else {
+        const current = button.parentElement.querySelector('div').textContent;
+        const body = prompt('Editar comentário:', current); if(!body || !body.trim()) return;
+        await fetch(`http://localhost:3000/api/comentarios/${button.dataset.commentId}`, {method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({body})});
+      }
+      loadCompanyComments(selectedPartner.id);
+    });
+    document.getElementById('editCompanyBtn').addEventListener('click', () => {
+      if(!selectedPartner) return;
+      document.getElementById('editCompanyName').value=selectedPartner.name;
+      document.getElementById('editCompanyEntityType').value=selectedPartner.entityType || 'EMPRESA';
+      document.getElementById('editCompanyIndustry').value=selectedPartner.category || '';
+      document.getElementById('editCompanyLogo').value=selectedPartner.logoUrl || '';
+      document.getElementById('editCompanyDescription').value=selectedPartner.summary || '';
+      document.getElementById('companyEditPanel').style.display='block';
+    });
+    document.getElementById('saveCompanyBtn').addEventListener('click', async () => {
+      if(!selectedPartner) return;
+      const payload={name:document.getElementById('editCompanyName').value.trim(),entityType:document.getElementById('editCompanyEntityType').value,industry:document.getElementById('editCompanyIndustry').value.trim(),logoUrl:document.getElementById('editCompanyLogo').value.trim(),description:document.getElementById('editCompanyDescription').value.trim()};
+      const response=await fetch(`http://localhost:3000/api/empresas/${selectedPartner.id}`,{method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); const data=await response.json();
+      if(!response.ok){ alert(data.error||'Não foi possível salvar.'); return; }
+      Object.assign(selectedPartner,{name:data.company.name,entityType:data.company.entityType,category:data.company.industry,logoUrl:data.company.logoUrl,summary:data.company.description,initials:data.company.name.split(/\s+/).map(word=>word[0]).join('').slice(0,2).toUpperCase()});
+      renderRanking(); openPartner(selectedPartner.id);
+    });
+    document.getElementById('deleteCompanyBtn').addEventListener('click', async () => {
+      if(!selectedPartner || !confirm(`Excluir a entidade ${selectedPartner.name} e todos os dados vinculados?`)) return;
+      const response=await fetch(`http://localhost:3000/api/empresas/${selectedPartner.id}`,{method:'DELETE',credentials:'include'}); if(!response.ok){alert('Não foi possível excluir a empresa.');return;}
+      partners.splice(partners.indexOf(selectedPartner),1); modal.classList.remove('show'); renderRanking();
+    });
+
+    // close handlers
+    closeModal.addEventListener('click',()=>{ modal.classList.remove('show'); modal.setAttribute('aria-hidden','true'); });
+    modal.addEventListener('click',(e)=>{ if(e.target===modal){ modal.classList.remove('show'); modal.setAttribute('aria-hidden','true'); } });
+
+    document.querySelectorAll('.entity-tab').forEach(button => button.addEventListener('click', () => {
+      selectedEntityType = button.dataset.entity;
+      document.querySelectorAll('.entity-tab').forEach(tab => tab.classList.toggle('active', tab === button));
+      renderRanking();
+    }));
+
+    // initial render
+    renderRanking();
+
+    async function loadRegisteredCompanies(){
+      try{
+        const response = await fetch('http://localhost:3000/api/empresas/ranking');
+        if(!response.ok) return;
+        const data = await response.json();
+        const knownNames = new Set(partners.map(partner => partner.name.toLocaleLowerCase('pt-BR')));
+        (data.companies || []).forEach(company => {
+          if(knownNames.has(company.name.toLocaleLowerCase('pt-BR'))) return;
+          partners.push({
+            id: company.id,
+            name: company.name,
+            entityType: ['PREFEITURA', 'BIG_TECH'].includes(company.entityType) ? company.entityType : 'EMPRESA',
+            category: company.industry || 'Não informado',
+            isRegistered: true,
+            logoUrl: company.logoUrl || '',
+            initials: company.name.split(/\s+/).filter(Boolean).slice(0, 2).map(word => word[0]).join('').toUpperCase() || 'E',
+            rating: Number(company.rating) || 0,
+            ratingCount: Number(company.ratingCount) || 0,
+            summary: company.description && company.description !== 'Empresa cadastrada na rede DOCS. Os indicadores são atualizados conforme suas licitações são criadas.' && !company.description.startsWith('Ramo de atuação:')
+              ? company.description
+              : `Ramo de atuação: ${company.industry || 'Não informado'}.`,
+            services: []
+          });
+        });
+        renderRanking();
+      }catch(error){
+        console.warn('Registered companies could not be loaded.', error);
+      }
+    }
+    loadRegisteredCompanies();
+  </script>
+  <script>
+    async function checkAuth(){
+      try{
+        const resp = await fetch('http://localhost:3000/auth/me', { credentials: 'include' });
+        const data = await resp.json();
+        const authArea = document.getElementById('authArea');
+        if(data.user){
+          window.docsIsAdmin = !!data.isAdmin;
+          window.docsCurrentUser = data.user;
+          const user = data.user;
+            let avatarUrl = null;
+            if (user.avatar) {
+              const ext = user.avatar.startsWith('a_') ? 'gif' : 'png';
+              avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=128`;
+            }
+          authArea.innerHTML = '';
+          const pill = document.createElement('div'); pill.className = 'user-pill';
+
+          const avatarWrap = document.createElement('div');
+          if(avatarUrl){
+            const img = document.createElement('img'); img.className = 'user-avatar'; img.src = avatarUrl; img.alt = user.username || 'avatar';
+            avatarWrap.appendChild(img);
+          } else {
+            const div = document.createElement('div'); div.className = 'user-avatar initials'; div.textContent = (user.username||'U').slice(0,1).toUpperCase();
+            avatarWrap.appendChild(div);
+          }
+          pill.appendChild(avatarWrap);
+
+          const name = document.createElement('span'); name.className = 'user-name'; name.textContent = user.username || 'Usuário';
+          pill.appendChild(name);
+
+          const logout = document.createElement('a'); logout.className = 'logout-btn'; logout.href = 'http://localhost:3000/auth/logout'; logout.textContent = 'Sair';
+          pill.appendChild(logout);
+
+          authArea.appendChild(pill);
+        }
+      }catch(err){console.error('Auth check failed',err)}
+    }
+    document.addEventListener('DOMContentLoaded', checkAuth);
+  </script>
+  <script src="footer-popups.js"></script>
+</body>
+</html>

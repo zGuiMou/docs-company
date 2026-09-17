@@ -1,0 +1,1116 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Licitações e Contratos — Docs Company</title>
+  <style>
+    :root{
+      --bg:#05070a;--bg-soft:#0b1118;--panel:#0d141b;--panel-strong:#111b27;--text:#f5f7fa;--muted:#98a7ba;--line:rgba(255,255,255,.08);--blue:#5aa6ff;--blue-soft:rgba(90,166,255,.15);--green:#5ad1a6;--amber:#f2c56d;--red:#ff7a7a;--shadow:0 24px 80px rgba(0,0,0,.32)
+    }
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at top right,rgba(90,166,255,.12),transparent 20%),linear-gradient(180deg,#05070a,#091018 100%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}a{color:inherit;text-decoration:none}
+    .nav{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:20;width:min(1120px,calc(100% - 32px));display:flex;align-items:center;justify-content:center;padding:9px 12px;border:1px solid var(--line);background:rgba(5,7,10,.78);backdrop-filter:blur(18px);border-radius:15px;box-shadow:0 18px 40px rgba(0,0,0,.18)}
+    .brand-wrap{display:flex;flex-direction:row;align-items:center;gap:10px;position:absolute;left:18px}.brand{display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;letter-spacing:-.06em}.brand-text{display:inline-flex;align-items:flex-start;flex-direction:column;line-height:1}.brand-main{display:inline-flex;align-items:center;letter-spacing:-.06em}.brand-sub{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#aeb8c5;margin-top:4px}.dot{color:var(--blue)}.brand-mark{position:relative;width:48px;height:48px;display:block;transform-style:preserve-3d;transition:transform .25s ease,filter .25s ease;filter:drop-shadow(0 12px 22px rgba(43,102,255,.32));cursor:pointer}.brand-mark svg{width:100%;height:100%;display:block;overflow:visible}.brand-mark .mark-core{fill:#f5f7fa}.brand-mark .mark-cut{fill:#080c11}.brand-mark .mark-dot{fill:#2c6df6;filter:drop-shadow(0 0 18px rgba(44,109,246,.9))}.brand-mark:hover{filter:drop-shadow(0 18px 28px rgba(43,102,255,.5))}
+    .navlinks{display:flex;gap:3px}.navlinks a{padding:9px 13px;border:1px solid transparent;border-radius:8px;color:#aeb8c5;font-size:13px;transition:.2s}.navlinks a:hover,.navlinks a.active{color:#fff;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18)}
+    /* Discord button + user pill */
+    .discord-login{position:absolute;right:18px;top:10px;z-index:24;display:inline-flex;align-items:center;gap:10px;padding:9px 14px;border-radius:10px;background:linear-gradient(135deg,#ff8a00,#ffb347);color:#081017;font-weight:800;border:1px solid rgba(255,140,36,.16);box-shadow:0 10px 30px rgba(255,138,36,.12);font-size:13px;text-transform:uppercase}
+    .discord-login svg{width:18px;height:18px;display:block}
+    .user-pill{position:absolute;right:18px;top:10px;z-index:24;display:flex;align-items:center;gap:8px;height:38px;max-width:calc(100% - 36px);padding:4px 10px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.04);font-weight:700}
+    .user-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover}
+    .user-avatar.initials{display:grid;place-items:center;background:linear-gradient(135deg,#5aa6ff,#84c4ff);color:#07131d;font-weight:800;width:28px;height:28px;border-radius:50%}
+    .user-name{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#eaf6ff;font-size:13px}
+    .logout-btn{padding:6px 10px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);text-decoration:none;font-size:13px}
+    .page-top{padding:120px 24px 40px}
+    .wrap{width:min(1180px,100%);margin:auto}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.2em;color:var(--blue);margin-bottom:20px}
+    .section-title{font-size:clamp(42px,6vw,76px);line-height:.96;letter-spacing:-.07em;margin:0 0 18px}.section-lead{font-size:17px;line-height:1.7;color:var(--muted);max-width:760px;margin:0 0 28px}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:26px 0 28px}.stat{padding:18px 20px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:16px}.stat small{display:block;color:var(--muted);font-size:10px;letter-spacing:.14em;text-transform:uppercase}.stat strong{display:block;margin-top:10px;font-size:28px;letter-spacing:-.06em}
+    .toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-top:10px}
+    .search{flex:1;min-width:260px;display:flex;align-items:center;gap:10px;padding:15px 18px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:12px;box-shadow:var(--shadow)}
+    .search input{flex:1;background:transparent;border:0;outline:none;color:var(--text);font-size:14px}.search input::placeholder{color:#75839a}.search span{font-size:18px;color:var(--muted)}
+    .filters{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.filter-chip{padding:9px 12px;border:1px solid var(--line);background:rgba(255,255,255,.02);color:var(--muted);border-radius:999px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:.2s}.filter-chip.active,.filter-chip:hover{background:var(--blue-soft);border-color:rgba(90,166,255,.5);color:#edf5ff}
+    .lic-list{margin-top:22px;display:grid;gap:16px}
+    .lic-card{display:grid;grid-template-columns:1.4fr .6fr;gap:24px;padding:24px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(17,27,39,.7),rgba(8,12,18,.9));border-radius:18px;box-shadow:0 18px 40px rgba(0,0,0,.18);transition:.25s}
+    .lic-card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.14)}
+    .lic-card.status-aberta{border-color:rgba(74,211,122,.58);background:linear-gradient(135deg,rgba(30,118,69,.34),rgba(8,19,14,.94));box-shadow:0 18px 40px rgba(37,179,91,.13)}
+    .lic-card.status-andamento{border-color:rgba(242,197,109,.62);background:linear-gradient(135deg,rgba(128,91,17,.32),rgba(25,19,7,.94));box-shadow:0 18px 40px rgba(242,197,109,.12)}
+    .lic-card.status-encerrada{border-color:rgba(255,110,110,.58);background:linear-gradient(135deg,rgba(126,35,35,.3),rgba(24,8,10,.94));box-shadow:0 18px 40px rgba(255,95,95,.12)}
+    .lic-card-main{display:flex;flex-direction:column;gap:12px}
+    .tag{display:inline-flex;align-items:center;justify-content:center;align-self:flex-start;padding:6px 10px;border-radius:999px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;border:1px solid transparent}
+    .tag.aberta{background:rgba(74,211,122,.14);border-color:rgba(74,211,122,.42);color:#bcffd1}.tag.analise,.tag.andamento{background:rgba(242,197,109,.14);border-color:rgba(242,197,109,.42);color:#ffe6a5}.tag.encerrada{background:rgba(255,110,110,.14);border-color:rgba(255,110,110,.4);color:#ffd0d0}
+    .lic-card h3{margin:0;font-size:30px;letter-spacing:-.06em;line-height:1.1}.lic-meta{display:flex;flex-wrap:wrap;gap:8px 14px;color:var(--muted);font-size:13px}.lic-meta span{display:inline-flex;align-items:center;gap:6px}
+    .lic-meta span:before{content:"•";color:var(--blue)}
+    .lic-meta span:first-child:before{content:""}
+    .muted{color:var(--muted);font-size:13px;line-height:1.6}
+    .lic-card-side{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;text-align:right;border-left:1px solid var(--line);padding-left:20px}
+    .lic-entity{display:flex;align-items:center;gap:10px;margin-bottom:2px}.lic-entity-logo{width:42px;height:42px;border-radius:10px;object-fit:cover;background:linear-gradient(135deg,#5aa6ff,#84c4ff);border:1px solid rgba(255,255,255,.16)}.lic-entity-fallback{display:grid;place-items:center;color:#061019;font-weight:900}
+    .lic-card-side b{font-size:30px;letter-spacing:-.05em}.lic-card-side span{display:block;color:var(--muted);font-size:12px;margin-top:8px}
+    .contract-btn{margin-top:16px;padding:11px 16px;border:1px solid rgba(90,166,255,.5);background:rgba(90,166,255,.08);color:#edf5ff;border-radius:11px;font-size:11px;letter-spacing:.13em;text-transform:uppercase;cursor:pointer;transition:.2s}.contract-btn:hover{background:rgba(90,166,255,.15);transform:translateY(-1px)}
+    .empty-state{display:none;padding:32px 20px;border:1px dashed var(--line);border-radius:16px;color:var(--muted);text-align:center;background:rgba(255,255,255,.01)}
+    .empty-state.show{display:block}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:24px;z-index:30}.modal.show{display:flex}.modal-card{width:min(760px,100%);max-height:calc(100vh - 48px);display:flex;flex-direction:column;background:linear-gradient(180deg,#0c141b,#0a0d12);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);overflow:hidden}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line)}
+    .modal-header h3{margin:0;font-size:22px;letter-spacing:-.05em}.modal-close{background:transparent;color:var(--text);border:1px solid var(--line);width:42px;height:42px;border-radius:10px;cursor:pointer;font-size:22px}
+    .modal-body{min-height:0;padding:22px 20px 26px;overflow-y:auto}
+    .modal-body p{color:var(--muted);line-height:1.7;margin:0 0 18px}.modal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.modal-stat{padding:14px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.02)}.modal-stat small{display:block;color:var(--muted);font-size:10px;letter-spacing:.12em;text-transform:uppercase}.modal-stat strong{display:block;margin-top:8px;font-size:18px;letter-spacing:-.04em}
+    #modalDescription{white-space:pre-wrap;tab-size:4;overflow-wrap:anywhere}
+    #createContractModal input,#createContractModal textarea{background:#081421;color:#f5f7fa;border-color:rgba(90,166,255,.3)}#createContractModal textarea{white-space:pre-wrap;tab-size:4}
+    footer{border-top:1px solid var(--line);padding:30px 24px;color:#687382;font-size:12px}.footer{width:min(1080px,100%);margin:auto;display:grid;grid-template-columns:1fr 2fr 1fr;gap:30px;align-items:center}.footer-brand{font-size:20px;font-weight:900;color:#dfe5ed;letter-spacing:-.06em}.footer-note{line-height:1.65;border-left:1px solid #34404e;padding-left:30px}.footer-links{display:flex;justify-content:flex-end;gap:15px}.footer-links a:hover{color:#fff}
+    @media(max-width:800px){.brand{position:static}.nav{justify-content:space-between}.navlinks{margin-left:auto}.stats{grid-template-columns:1fr}.lic-card{grid-template-columns:1fr}.lic-card-side{align-items:flex-start;text-align:left;border-left:0;border-top:1px solid var(--line);padding-left:0;padding-top:16px}.modal-grid{grid-template-columns:1fr}.footer{grid-template-columns:1fr}.footer-note{border-left:0;border-top:1px solid #34404e;padding:20px 0 0}.footer-links{justify-content:flex-start}}
+    @media(max-width:600px){.nav{top:10px;width:calc(100% - 20px)}.brand{display:none}.navlinks{width:100%;justify-content:center}.navlinks a{padding:8px 7px;font-size:11px}.page-top{padding-left:18px;padding-right:18px}.toolbar{align-items:stretch}.search{min-width:0}.filter-chip{flex:1 1 calc(50% - 10px);text-align:center}.lic-card h3{font-size:24px}}
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="index.html"><span class="brand-wrap"><span class="brand-mark" aria-label="Logo DOCS"><svg viewBox="0 0 120 120" role="img" aria-hidden="true"><path class="mark-core" d="M30 16H62C90 16 108 34 108 60C108 86 90 104 62 104H30V16ZM52 36V84H62C77 84 88 76 88 60C88 44 77 36 62 36H52Z"/><path class="mark-cut" d="M60 38H62C74 38 82 47 82 60C82 73 74 82 62 82H60V38Z"/><circle class="mark-dot" cx="94" cy="90" r="14"/></svg></span><span class="brand-text"><span class="brand-main">DOCS<span class="dot">.</span></span><span class="brand-sub">Company</span></span></span></a>
+    <nav class="navlinks">
+      <a href="index.html">Início</a>
+      <a href="servicos.html">Nossas Soluções</a>
+      <a class="active" href="licitacoes.html">Licitações e Contratos</a>
+      <a href="parceiros.html">Entidades</a>
+    </nav>
+    <div id="authArea">
+      <a class="discord-login" href="http://localhost:3000/auth/discord" title="Entrar com Discord">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="#081017" d="M20.317 4.369A19.791 19.791 0 0 0 16.993 3c-.24.428-.52.99-.714 1.435-2.13 0-4.26 0-6.39 0-.194-.445-.474-1.007-.714-1.435A19.791 19.791 0 0 0 3.683 4.37C2.07 8.229 1.728 11.999 2 15.708c4.21 3.09 8.29 3.674 11.26 3.4.84-.07 1.65-.2 2.42-.37.18-.04.36-.11.53-.18.01 0 .02-.01.03-.01.23-.1.34-.31.28-.57-.21-.76-.44-1.52-.7-2.26-.03-.09-.07-.18-.12-.27-.02-.04-.05-.07-.08-.11-.1-.12-.2-.23-.31-.34-.05-.05-.11-.09-.16-.14-.12-.11-.25-.22-.38-.33-.15-.12-.29-.25-.44-.37-.19-.16-.36-.33-.53-.5-.14-.14-.28-.28-.41-.42-.13-.13-.25-.27-.37-.4-.04-.05-.07-.09-.11-.14l-.01-.01c-.22-.28-.43-.57-.63-.86-.08-.12-.16-.24-.24-.36-.09-.12-.18-.24-.27-.36-.11-.14-.22-.28-.33-.42-.08-.11-.17-.22-.26-.33-.12-.15-.25-.3-.38-.45-.08-.09-.17-.18-.25-.27-.09-.09-.19-.18-.28-.27-.16-.16-.32-.33-.48-.49-.07-.08-.14-.15-.21-.23-.07-.07-.14-.14-.21-.21-.08-.08-.16-.16-.24-.24C12.66 8.41 12.5 8.24 12.33 8.08c-.06-.06-.12-.12-.18-.18-.22-.21-.45-.42-.67-.63"/></svg>
+        Entrar com Discord
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section class="section page-top">
+      <div class="wrap">
+        <div class="eyebrow">Painel de oportunidades</div>
+        <h1 class="section-title">Licitações e Contratos<span class="dot">.</span></h1>
+        <p class="section-lead">Pesquise oportunidades, acompanhe prazos e visualize contratos fictícios estruturados para apoiar decisões de negócio.</p>
+
+        <div class="stats">
+          <div class="stat">
+            <small>Em aberto</small>
+            <strong id="stat-open">0</strong>
+          </div>
+          <div class="stat">
+            <small>Valor total</small>
+            <strong id="stat-value">R$ 0</strong>
+          </div>
+          <div class="stat">
+            <small>Próx. vencimento</small>
+            <strong id="stat-deadline">—</strong>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <label class="search" aria-label="Pesquisar licitação">
+            <span>⌕</span>
+            <input id="searchInput" type="text" placeholder="Buscar por palavra-chave, órgão ou cidade...">
+          </label>
+          <div style="margin-left:12px;display:flex;gap:8px;align-items:center">
+            <button id="createContractBtn" style="display:none;background:linear-gradient(135deg,#4ad37a,#6fe6a1);border:1px solid rgba(90,166,255,.4);color:#041018;padding:8px 12px;border-radius:10px;font-weight:800;">Criar Licitação</button>
+            <button id="receivedProposalsBtn" style="display:none;background:linear-gradient(135deg,#5aa6ff,#84c4ff);border:1px solid rgba(90,166,255,.4);color:#041018;padding:8px 12px;border-radius:10px;font-weight:800;">Propostas</button>
+            <button id="adminPanelBtn" style="display:none;background:#333;border:1px solid var(--line);color:var(--muted);padding:8px 10px;border-radius:10px;">Admin</button>
+          </div>
+        </div>
+
+        <div class="filters" id="filters"></div>
+
+        <div class="lic-list" id="licList"></div>
+        <div class="empty-state" id="emptyState">Nenhuma licitação encontrada com os filtros aplicados.</div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal" id="contractModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalTitle">Detalhes do contrato</h3>
+        <button class="modal-close" type="button" aria-label="Fechar" id="closeModal">×</button>
+      </div>
+      <div class="modal-body">
+        <p id="modalDescription"></p>
+        <div class="modal-grid">
+          <div class="modal-stat">
+            <small>Entidade / Órgão</small>
+            <strong id="modalOrg"></strong>
+          </div>
+          <div class="modal-stat">
+            <small>Número da licitação</small>
+            <strong id="modalModality"></strong>
+          </div>
+          <div class="modal-stat">
+            <small>Prazo</small>
+            <strong id="modalDeadline"></strong>
+          </div>
+          <div class="modal-stat">
+            <small>Valor estimado</small>
+            <strong id="modalValue"></strong>
+          </div>
+        </div>
+        <hr style="margin:18px 0;border-color:rgba(255,255,255,.04)">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h4 style="margin:0 0 12px">Histórico de Propostas</h4>
+          <div style="display:flex;gap:8px">
+            <button id="editContractBtn" style="display:none;background:transparent;border:1px solid rgba(90,166,255,.55);color:#bdddff;padding:8px 12px;border-radius:10px;font-weight:800;">Editar licitação</button>
+            <button id="closeContractBtn" style="display:none;background:transparent;border:1px solid rgba(255,120,120,.45);color:#ffb0b0;padding:8px 12px;border-radius:10px;font-weight:800;">Encerrar licitação</button>
+            <button id="deleteContractBtn" style="display:none;background:transparent;border:1px solid rgba(255,100,100,.6);color:#ffb0b0;padding:8px 12px;border-radius:10px;font-weight:800;">Excluir licitação</button>
+            <button id="openProposalFromContractBtn" style="background:linear-gradient(135deg,#5aa6ff,#84c4ff);border:1px solid rgba(90,166,255,.4);color:#041018;padding:8px 12px;border-radius:10px;font-weight:800;">Enviar Proposta</button>
+          </div>
+        </div>
+        <div id="proposalsList"></div>
+        <div id="contractClosureRecord" style="display:none;margin-top:18px;padding:14px;border:1px solid rgba(255,140,140,.25);border-radius:12px;background:rgba(255,100,100,.06);white-space:pre-wrap;tab-size:4;overflow-wrap:anywhere"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="editContractModal" aria-hidden="true"><div class="modal-card"><div class="modal-header"><h3>Editar Licitação</h3><button type="button" class="modal-close" id="editContractCloseBtn">×</button></div><div class="modal-body"><label>Título<br><input id="e_title" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--line)"></label><label style="display:block;margin-top:8px">Valor do contrato<br><select id="e_value_mode" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--line)"><option value="fixed">Definir valor estimado</option><option value="negotiable">A combinar</option></select></label><label id="e_value_wrap" style="display:block;margin-top:8px">Valor estimado (R$)<br><input id="e_value" type="number" min="0" step="0.01" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--line)"></label><label style="display:block;margin-top:8px">Prazo final<br><input id="e_deadline" type="date" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--line)"></label><label style="display:block;margin-top:8px">Descrição<br><textarea id="e_description" rows="7" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--line);background:#081421;color:#f5f7fa;white-space:pre-wrap;tab-size:4"></textarea></label><button id="saveEditContractBtn" style="margin-top:12px;background:linear-gradient(135deg,#5aa6ff,#84c4ff);color:#041018;padding:10px 14px;border-radius:10px;border:none;font-weight:800">Salvar alterações</button></div></div></div>
+  <!-- Close contract modal -->
+  <div class="modal" id="closeContractModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Encerrar licitação</h3>
+        <button class="modal-close" type="button" aria-label="Fechar" id="closeContractClose">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Informe o motivo do encerramento. Ele ficará salvo no registro da licitação.</p>
+        <label>Motivo obrigatório<br><textarea id="closeContractReason" rows="5" style="width:100%;margin-top:8px;padding:10px;border-radius:8px;border:1px solid var(--line)"></textarea></label>
+        <div style="display:flex;justify-content:flex-end;margin-top:14px">
+          <button id="confirmCloseContractBtn" style="background:linear-gradient(135deg,#ff7474,#ff9b9b);color:#240606;padding:10px 14px;border-radius:10px;border:none;font-weight:800">Confirmar encerramento</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Received proposals modal -->
+  <div class="modal" id="receivedProposalsModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Propostas recebidas</h3>
+        <button class="modal-close" type="button" aria-label="Fechar" id="receivedProposalsClose">×</button>
+      </div>
+      <div class="modal-body" id="receivedProposalsList"></div>
+    </div>
+  </div>
+  <!-- Admin modal -->
+  <div class="modal" id="adminModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Admin — Empresas</h3>
+        <button class="modal-close" type="button" aria-label="Fechar" id="adminClose">×</button>
+      </div>
+      <div class="modal-body">
+        <h4>Criar Empresa</h4>
+        <label>Nome<br><input id="admin_company_name" type="text" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--line)"></label>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+          <button id="admin_create_company" style="background:linear-gradient(135deg,#4ad37a,#6fe6a1);color:#041018;padding:8px 12px;border-radius:8px;border:none;font-weight:800">Criar empresa</button>
+        </div>
+        <hr style="margin:12px 0;border-color:rgba(255,255,255,.04)">
+        <h4>Vincular usuário à empresa</h4>
+        <label>Nick do Usuário (Discord)<br><input id="admin_user_nickname" type="text" placeholder="O usuário precisa ter feito login" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--line)"></label>
+        <label style="margin-top:8px">Nome da Empresa<br><input id="admin_company_name_link" type="text" placeholder="Digite o nome exato" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--line)"></label>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+          <button id="admin_link_user" style="background:linear-gradient(135deg,#5aa6ff,#84c4ff);color:#041018;padding:8px 12px;border-radius:8px;border:none;font-weight:800">Vincular</button>
+        </div>
+        <div id="admin_feedback" style="margin-top:12px;color:var(--muted)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Proposal modal -->
+  <div class="modal" id="proposalModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Enviar Proposta</h3>
+        <button class="modal-close" type="button" aria-label="Fechar" id="proposalClose">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Concorda com o pagamento de: <strong id="propContractValue"></strong></p>
+        <label><input type="radio" name="acceptValue" id="acceptValueYes" value="yes" checked> Sim</label>
+        <label style="margin-left:12px"><input type="radio" name="acceptValue" value="no"> Não</label>
+        <div id="newValueWrap" style="margin-top:8px;display:none">
+          <label>Novo Valor Proposto (R$)<br><input id="newValue" type="number" step="0.01" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--line)"></label>
+        </div>
+
+        <p style="margin-top:12px">Concorda com o prazo de: <strong id="propContractDeadline"></strong></p>
+        <label><input type="radio" name="acceptDeadline" id="acceptDeadlineYes" value="yes" checked> Sim</label>
+        <label style="margin-left:12px"><input type="radio" name="acceptDeadline" value="no"> Não</label>
+        <div id="newDeadlineWrap" style="margin-top:8px;display:none">
+          <label>Novo Prazo Proposto<br><input id="newDeadline" type="date" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--line)"></label>
+        </div>
+
+        <p style="margin-top:12px">Comentários / Justificativa <button id="commentHelpToggle" style="border:0;background:transparent;color:var(--muted);font-size:14px;margin-left:8px;cursor:pointer">(?)</button></p>
+        <div id="commentHelp" style="display:none;margin-bottom:8px;color:var(--muted);font-size:13px">O comentário é opcional, mas é muito importante: ele ajuda o contratante a entender por que sua proposta é competitiva e aumenta as chances de aceitação. Explique brevemente benefícios, experiência ou justificativas para o novo valor/prazo.</div>
+        <textarea id="propMessage" rows="5" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--line)"></textarea>
+
+        <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:12px">
+          <button id="sendProposalBtn" style="background:linear-gradient(135deg,#5aa6ff,#84c4ff);color:#041018;padding:10px 14px;border-radius:10px;border:none;font-weight:800">Enviar Proposta</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Contract modal -->
+  <div class="modal" id="createContractModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Criar Licitação / Contrato</h3>
+        <button class="modal-close" type="button" aria-label="Fechar" id="createContractClose">×</button>
+      </div>
+      <div class="modal-body">
+        <label>Título<br><input id="c_title" type="text" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--line)"></label>
+        <label style="display:block;margin-top:8px">Valor do contrato<br><select id="c_value_mode" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--line)"><option value="fixed">Definir valor estimado</option><option value="negotiable">A combinar</option></select></label>
+        <label id="c_value_wrap" style="display:block;margin-top:8px">Valor estimado (R$)<br><input id="c_value" type="number" min="0" step="0.01" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--line)"></label>
+        <label style="display:block;margin-top:8px"> Prazo final<br><input id="c_deadline" type="date" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--line)"></label>
+        <label style="display:block;margin-top:8px">Descrição
+          <span style="display:block;margin:6px 0 8px;color:var(--muted);font-size:13px;line-height:1.55">Fique à vontade para estruturar o contrato conforme as melhores práticas do roleplay. Descreva o objeto da contratação, entregas, responsabilidades, prazos, condições e demais regras que deixem o acordo claro para todas as partes. Use parágrafos e tópicos quando necessário.</span>
+          <textarea id="c_description" rows="7" placeholder="Escreva os detalhes do contrato aqui..." style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--line)"></textarea>
+        </label>
+        <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:12px">
+          <button id="createContractCloseBtn" class="modal-close" style="background:transparent;color:var(--text);border:1px solid var(--line);padding:10px 14px;border-radius:10px">Cancelar</button>
+          <button id="submitCreateContractBtn" style="background:linear-gradient(135deg,#4ad37a,#6fe6a1);color:#041018;padding:10px 14px;border-radius:10px;border:none;font-weight:800">Criar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer">
+      <div class="footer-brand">DOCS<span class="dot">.</span></div>
+      <div class="footer-note">Empresa do universo <strong>Expresso Continental</strong>, criada exclusivamente para fins de roleplay. Não possui vínculo com empresas de terceiros ou prefeituras no servidor.</div>
+      <div class="footer-links">
+        <button type="button" class="footer-popup-trigger" data-footer-popup="terms">Termos de Uso</button>
+        <button type="button" class="footer-popup-trigger" data-footer-popup="cookies">Cookies</button>
+        <button type="button" class="footer-popup-trigger" data-footer-popup="careers">Trabalhe Conosco</button>
+      </div>
+    </div>
+  </footer>
+
+  <script src="runtime-api.js"></script>
+  <script>
+    const brandMark = document.querySelector('.brand-mark');
+    if (brandMark) {
+      const reset = () => {
+        brandMark.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+        brandMark.style.filter = 'drop-shadow(0 12px 22px rgba(43,102,255,.32))';
+      };
+
+      brandMark.addEventListener('pointermove', (event) => {
+        const rect = brandMark.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width;
+        const y = (event.clientY - rect.top) / rect.height;
+        const rotateY = (x - 0.5) * 18;
+        const rotateX = (0.5 - y) * 18;
+
+        brandMark.style.transform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+        brandMark.style.filter = `drop-shadow(${rotateY * 0.8}px ${rotateX * -0.8}px 22px rgba(43,102,255,.5))`;
+      });
+
+      brandMark.addEventListener('pointerleave', reset);
+      reset();
+    }
+    const licitacoes = [
+      {
+        id: 1,
+        code: 'PE 024/2026',
+        title: 'Serviços administrativos',
+        orgao: 'Prefeitura Municipal',
+        city: 'Rio de Janeiro',
+        state: 'RJ',
+        category: 'Administrativo',
+        modality: 'Pregão Eletrônico',
+        status: 'ABERTA',
+        value: 85000,
+        deadline: '2026-09-28',
+        description: 'Contratação de empresa para prestação de suporte administrativo, organização documental e atendimento interno.',
+        contractTitle: 'Contrato de prestação de serviços administrativos',
+        contractText: 'O contrato fictício prevê suporte administrativo contínuo, organização de processos, conferência documental e atendimento a demandas operacionais internas.'
+      },
+      {
+        id: 2,
+        code: 'CP 011/2026',
+        title: 'Soluções empresariais',
+        orgao: 'Órgão público regional',
+        city: 'Rio de Janeiro',
+        state: 'RJ',
+        category: 'Serviços',
+        modality: 'Concorrência',
+        status: 'ABERTA',
+        value: 120000,
+        deadline: '2026-10-04',
+        description: 'Empresa especializada para apoiar processos estratégicos, gestão documental e organização de rotinas administrativas.',
+        contractTitle: 'Contrato de consultoria e gestão documental',
+        contractText: 'Este contrato fictício define a prestação de consultoria administrativa, apoio gerencial e organização de documentos em múltiplas frentes de operação.'
+      },
+      {
+        id: 3,
+        code: 'DL 007/2026',
+        title: 'Apoio documental',
+        orgao: 'Entidade pública',
+        city: 'Niterói',
+        state: 'RJ',
+        category: 'Documentação',
+        modality: 'Dispensa',
+        status: 'ABERTA',
+        value: 32500,
+        deadline: '2026-10-12',
+        description: 'Serviço focado em organização documental, digitalização e conferência de arquivos de gestão corporativa.',
+        contractTitle: 'Contrato de apoio documental e digitalização',
+        contractText: 'A contratação fictícia contempla processamento de documentos, conferência, organização em sistemas e apoio à gestão de arquivos físicos e digitais.'
+      },
+      {
+        id: 4,
+        code: 'TI 013/2026',
+        title: 'Infraestrutura tecnológica',
+        orgao: 'Secretaria de tecnologia',
+        city: 'São Paulo',
+        state: 'SP',
+        category: 'Tecnologia',
+        modality: 'Pregão Eletrônico',
+        status: 'ANDAMENTO',
+        value: 180000,
+        deadline: '2026-10-20',
+        description: 'Fornecimento e suporte técnico para infraestrutura digital, acesso e monitoramento de sistemas internos.',
+        contractTitle: 'Contrato de suporte tecnológico',
+        contractText: 'O modelo fictício inclui manutenção de infraestrutura, suporte técnico, monitoramento e acompanhamento de itens críticos do ambiente digital.'
+      },
+      {
+        id: 5,
+        code: 'LOG 021/2026',
+        title: 'Transporte e logística',
+        orgao: 'Agência de logística pública',
+        city: 'Belo Horizonte',
+        state: 'MG',
+        category: 'Logística',
+        modality: 'Concorrência',
+        status: 'ENCERRADA',
+        value: 96000,
+        deadline: '2026-09-18',
+        description: 'Contratação para distribuição, transporte e organização logística de materiais e documentos em rede regional.',
+        contractTitle: 'Contrato de logística e distribuição',
+        contractText: 'Este contrato fictício detalha as regras de transporte, monitoramento, organização de cargas e acompanhamento de entregas em múltiplos pontos.'
+      },
+      {
+        id: 6,
+        code: 'ADM 034/2026',
+        title: 'Gestão documental corporativa',
+        orgao: 'Departamento de gestão',
+        city: 'Curitiba',
+        state: 'PR',
+        category: 'Administrativo',
+        modality: 'Dispensa',
+        status: 'ABERTA',
+        value: 71000,
+        deadline: '2026-10-27',
+        description: 'Apoio administrativo para organização de demandas internas, controle de processos e gestão documental centralizada.',
+        contractTitle: 'Contrato de gestão documental corporativa',
+        contractText: 'A contratação fictícia inclui organização de arquivos, governança documental, apoio a processos internos e controle das pendências operacionais.'
+      }
+    ];
+
+    const filterOptions = ['Todos', 'ABERTA', 'ANDAMENTO', 'ENCERRADA'];
+    let activeFilter = 'Todos';
+    let myCompanyId = null;
+    let isAdminUser = false;
+
+    const searchInput = document.getElementById('searchInput');
+    const filtersEl = document.getElementById('filters');
+    const listEl = document.getElementById('licList');
+    const emptyState = document.getElementById('emptyState');
+    const statOpen = document.getElementById('stat-open');
+    const statValue = document.getElementById('stat-value');
+    const statDeadline = document.getElementById('stat-deadline');
+
+    function formatCurrency(value) {
+      return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(value);
+    }
+    function formatContractValue(item) { return item && item.valueToBeAgreed ? 'A combinar' : formatCurrency(Number(item && item.value) || 0); }
+
+    function formatOnlyDate(iso){ if(!iso) return '—'; const d=new Date(iso); const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yyyy=d.getFullYear(); return `${dd}/${mm}/${yyyy}` }
+
+    function renderFilters() {
+      filtersEl.innerHTML = '';
+      filterOptions.forEach((option) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `filter-chip ${option === activeFilter ? 'active' : ''}`;
+        btn.textContent = option;
+        btn.addEventListener('click', () => {
+          activeFilter = option;
+          renderFilters();
+          renderList();
+        });
+        filtersEl.appendChild(btn);
+      });
+    }
+
+    function getStatusClass(status) {
+      const normalized = status.toLowerCase().replace(/\s+/g, '');
+      if (normalized === 'aberta') return 'aberta';
+      if (normalized === 'andamento') return 'andamento';
+      if (normalized === 'encerrada') return 'encerrada';
+      return 'aberta';
+    }
+
+    function getBiddingNumber(item) {
+      if (item.bidNumber) return item.bidNumber;
+      const numericId = Number(item.id);
+      return Number.isInteger(numericId) ? `${String(90000 + numericId).slice(-5)}/${new Date().getFullYear()}` : 'Não informado';
+    }
+
+    function element(tag, text, className) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined && text !== null) node.textContent = text;
+      return node;
+    }
+
+    function renderList() {
+      const term = searchInput.value.trim().toLowerCase();
+      const filtered = licitacoes.filter((item) => {
+        const matchesFilter = activeFilter === 'Todos' || item.status === activeFilter;
+        const matchesSearch =
+          !term ||
+          item.code.toLowerCase().includes(term) ||
+          item.title.toLowerCase().includes(term) ||
+          item.orgao.toLowerCase().includes(term) ||
+          item.city.toLowerCase().includes(term) ||
+          item.category.toLowerCase().includes(term);
+        return matchesFilter && matchesSearch;
+      });
+
+      listEl.innerHTML = '';
+      emptyState.classList.toggle('show', filtered.length === 0);
+
+      filtered.forEach((item) => {
+        const card = document.createElement('article');
+        card.className = `lic-card status-${String(item.status || 'ABERTA').toLowerCase()}`;
+        const main = element('div', undefined, 'lic-card-main');
+        const tag = element('span', item.status, `tag ${getStatusClass(item.status)}`);
+        const title = element('h3', `${item.code} — ${item.title}`);
+        title.textContent = item.title;
+        const meta = element('div', undefined, 'lic-meta');
+        [item.orgao, `${item.city}/${item.state}`, item.category].forEach(value => meta.appendChild(element('span', value)));
+        meta.replaceChildren();
+        [[item.city, item.state].filter(Boolean).join('/'), item.category]
+          .filter(Boolean)
+          .forEach(value => meta.appendChild(element('span', value)));
+        const entity = document.createElement('div'); entity.className = 'lic-entity';
+        const logo = document.createElement(item.companyLogoUrl ? 'img' : 'div'); logo.className = `lic-entity-logo${item.companyLogoUrl ? '' : ' lic-entity-fallback'}`;
+        if(item.companyLogoUrl){ logo.src = item.companyLogoUrl; logo.alt = `Logo de ${item.orgao}`; } else logo.textContent = (item.orgao || 'E').split(/\s+/).map(word => word[0]).join('').slice(0,2).toUpperCase();
+        entity.append(logo, element('strong', item.orgao || 'Entidade responsável'));
+        main.append(tag, entity, title, meta,
+          element('p', item.description, 'muted'),
+          element('p', `Abertura: ${formatOnlyDate(item.createdAt)} · Número: ${getBiddingNumber(item)}`, 'muted'));
+
+        const side = element('div', undefined, 'lic-card-side');
+        const valueBlock = document.createElement('div');
+        valueBlock.append(element('b', formatContractValue(item)), element('span', formatOnlyDate(item.deadline)));
+        const actions = document.createElement('div');
+        actions.style.cssText = 'display:flex;flex-direction:column;gap:8px;align-items:flex-end';
+        const openButton = element('button', 'Ver contrato', 'contract-btn');
+        openButton.type = 'button';
+        openButton.dataset.id = String(item.id);
+        actions.appendChild(openButton);
+        side.append(valueBlock, actions);
+        card.append(main, side);
+        listEl.appendChild(card);
+      });
+
+      listEl.querySelectorAll('.contract-btn').forEach((button) => {
+        button.addEventListener('click', () => openContract(Number(button.dataset.id)));
+      });
+
+      // (proposal button now moved inside contract modal)
+
+      updateStats(filtered);
+    }
+
+    function updateStats(filtered) {
+      const openCount = filtered.filter((item) => item.status === 'ABERTA').length;
+      const totalValue = filtered.reduce((sum, item) => sum + item.value, 0);
+      const nextDeadline = filtered
+        .map((item) => new Date(item.deadline))
+        .filter((date) => !Number.isNaN(date.getTime()))
+        .sort((a, b) => a - b)[0];
+
+      statOpen.textContent = String(openCount);
+      statValue.textContent = formatCurrency(totalValue);
+      statDeadline.textContent = nextDeadline ? nextDeadline.toLocaleDateString('pt-BR') : '—';
+    }
+
+    async function loadSavedContracts() {
+      try {
+        const response = await fetch('http://localhost:3000/api/contratos');
+        if (!response.ok) return;
+        const data = await response.json();
+        const deletedIds = new Set((data.deletedStaticContractIds || []).map(Number));
+        for (let index = licitacoes.length - 1; index >= 0; index -= 1) {
+          if (deletedIds.has(Number(licitacoes[index].id))) licitacoes.splice(index, 1);
+        }
+        const knownIds = new Set(licitacoes.map(item => item.id));
+        (data.contracts || []).forEach(contract => {
+          if (knownIds.has(contract.id)) return;
+          licitacoes.unshift({
+            id: contract.id, code: contract.code, title: contract.title, orgao: contract.orgao,
+            city: contract.city, state: contract.state, category: contract.category || '',
+            bidNumber: contract.bidNumber || contract.modality || '', status: contract.status || 'ABERTA',
+            value: contract.value, valueToBeAgreed: !!contract.valueToBeAgreed, deadline: contract.deadline, description: contract.description || '',
+            contractTitle: contract.contractTitle || contract.title, contractText: contract.contractText || contract.description || '',
+            companyId: contract.companyId || null, createdAt: contract.createdAt || null, closeReason: contract.closeReason || '', closedAt: contract.closedAt || null
+          });
+        });
+        renderList();
+        loadEntityLogos();
+      } catch (error) {
+        console.warn('Saved contracts could not be loaded.', error);
+      }
+    }
+
+    async function loadEntityLogos() {
+      try {
+        const response = await fetch('http://localhost:3000/api/empresas/ranking');
+        if(!response.ok) return;
+        const data = await response.json();
+        const logos = new Map((data.companies || []).map(company => [String(company.id), company.logoUrl || '']));
+        licitacoes.forEach(contract => { if(contract.companyId) contract.companyLogoUrl = logos.get(String(contract.companyId)) || ''; });
+        renderList();
+      } catch (error) { console.warn('Entity logos could not be loaded.', error); }
+    }
+
+    function openContract(id) {
+      const item = licitacoes.find((lic) => lic.id === id);
+      if (!item) return;
+
+      document.getElementById('modalTitle').textContent = item.contractTitle;
+      const contractText = (item.contractText || '').trim();
+      const description = (item.description || '').trim();
+      const fullDescription = contractText && description && contractText !== description
+        ? `${contractText}\n\n${description}`
+        : contractText || description || 'Sem descrição.';
+      document.getElementById('modalDescription').textContent = fullDescription;
+      const location = [item.city, item.state].filter(Boolean).join('/');
+      document.getElementById('modalOrg').textContent = location ? `${item.orgao} · ${location}` : item.orgao;
+      document.getElementById('modalModality').textContent = getBiddingNumber(item);
+      document.getElementById('modalDeadline').textContent = formatOnlyDate(item.deadline);
+      document.getElementById('modalValue').textContent = formatContractValue(item);
+      const closeButton = document.getElementById('closeContractBtn');
+      const deleteButton = document.getElementById('deleteContractBtn');
+      const editButton = document.getElementById('editContractBtn');
+      const mayClose = item.companyId && String(item.companyId) === String(myCompanyId) && item.status !== 'ENCERRADA';
+      closeButton.style.display = mayClose ? 'inline-block' : 'none';
+      closeButton.dataset.contractId = String(item.id);
+      deleteButton.style.display = isAdminUser ? 'inline-block' : 'none';
+      deleteButton.dataset.contractId = String(item.id);
+      editButton.style.display = isAdminUser && item.companyId ? 'inline-block' : 'none';
+      editButton.dataset.contractId = String(item.id);
+      const closureRecord = document.getElementById('contractClosureRecord');
+      if(item.status === 'ENCERRADA' && item.closeReason){
+        closureRecord.textContent = `Encerrada em ${item.closedAt ? formatOnlyDate(item.closedAt) : 'data não informada'}\nMotivo: ${item.closeReason}`;
+        closureRecord.style.display = 'block';
+      } else {
+        closureRecord.replaceChildren();
+        closureRecord.style.display = 'none';
+      }
+
+      document.getElementById('contractModal').classList.add('show');
+      // attach contract id to modal and load proposals history for this contract
+      const contractModal = document.getElementById('contractModal');
+      contractModal.dataset.contractId = id;
+      fetchProposals(id);
+      // ensure the "Enviar Proposta" button inside modal triggers auth check and opens proposal modal
+      const openBtn = document.getElementById('openProposalFromContractBtn');
+      if(openBtn){
+        openBtn.dataset.id = id;
+        openBtn.onclick = async function(){
+          try{
+            const resp = await fetch('http://localhost:3000/auth/me', { credentials: 'include' });
+            const data = await resp.json();
+            if(!data.user){ showAuthToast(); return; }
+            openProposalModal(id, data.user);
+          }catch(err){ console.error(err); showAuthToast(); }
+        }
+      }
+    }
+
+    // Fetch and render proposals history
+    function formatOnlyDate(iso){ if(!iso) return '—'; const d=new Date(iso); const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yyyy=d.getFullYear(); return `${dd}/${mm}/${yyyy}` }
+
+    async function fetchProposals(contractId) {
+      try{
+        const resp = await fetch(`http://localhost:3000/api/contratos/${contractId}/propostas`, { credentials: 'include' });
+        const data = await resp.json();
+        const list = data.proposals || [];
+        const container = document.getElementById('proposalsList');
+        if(!container){
+          console.warn('proposalsList container not found');
+          return;
+        }
+        container.replaceChildren();
+        if(list.length===0){ container.appendChild(element('div', 'Nenhuma proposta enviada para este contrato.', 'empty-state show')); return; }
+        list.forEach(p => {
+          let avatar = '';
+          if(p.user && p.user.avatar){
+            const ext = p.user.avatar.startsWith('a_') ? 'gif' : 'png';
+            avatar = `https://cdn.discordapp.com/avatars/${p.user.id}/${p.user.avatar}.${ext}?size=64`;
+          }
+          const when = formatOnlyDate(p.createdAt);
+          const statusBadge = p.status==='PENDENTE'? '⏳ Pendente' : p.status==='ACEITA'? '✅ Aceita' : p.status==='RECUSADA'? '❌ Recusada' : '🏁 Finalizada';
+          const comment = p.message && p.message.trim() ? p.message : 'Sem comentários';
+          const newDeadlineFormatted = p.newDeadline ? formatOnlyDate(p.newDeadline) : null;
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex;gap:12px;padding:12px;border-bottom:1px solid rgba(255,255,255,.03);align-items:flex-start';
+          const avatarBox = document.createElement('div');
+          avatarBox.style.cssText = 'width:52px;height:52px;border-radius:50%;overflow:hidden;flex:0 0 52px;background:linear-gradient(135deg,#5aa6ff,#84c4ff);display:grid;place-items:center';
+          if (avatar) {
+            const image = document.createElement('img'); image.src = avatar; image.alt = ''; image.style.cssText = 'width:52px;height:52px;object-fit:cover';
+            avatarBox.appendChild(image);
+          } else {
+            avatarBox.appendChild(element('strong', (p.user.username || 'U').slice(0, 1).toUpperCase()));
+          }
+          const details = document.createElement('div'); details.style.flex = '1';
+          const header = document.createElement('div'); header.style.cssText = 'display:flex;justify-content:space-between;align-items:center';
+          const author = document.createElement('div'); author.append(element('strong', p.user.username), element('small', when));
+          author.lastChild.style.cssText = 'color:var(--muted);margin-left:8px';
+          header.append(author, element('div', statusBadge)); header.lastChild.style.fontWeight = '800';
+          const valueText = `Valor aceito: ${p.acceptValue ? 'Sim' : 'Não'}${p.newValue ? ' · Proposta: ' + new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(p.newValue) : ''}`;
+          const deadlineText = `Prazo aceito: ${p.acceptDeadline ? 'Sim' : 'Não'}${newDeadlineFormatted ? ' · Novo prazo: ' + newDeadlineFormatted : ''}`;
+          const valueLine = element('div', valueText); valueLine.style.cssText = 'margin-top:8px;color:var(--muted)';
+          const deadlineLine = element('div', deadlineText); deadlineLine.style.color = 'var(--muted)';
+          const commentLine = element('div', comment); commentLine.style.marginTop = '8px';
+          details.append(header, valueLine, deadlineLine, commentLine); row.append(avatarBox, details); container.appendChild(row);
+        });
+      }catch(err){console.error('Failed load proposals',err);}
+    }
+
+    // Handle proposal button click
+    async function handleProposalClick(contractId){
+      try{
+        const resp = await fetch('http://localhost:3000/auth/me', { credentials: 'include' });
+        const data = await resp.json();
+        if(!data.user){
+          showAuthToast();
+          return;
+        }
+        openProposalModal(contractId, data.user);
+      }catch(err){console.error(err);showAuthToast();}
+    }
+
+    // Toast for unauthenticated users
+    function showAuthToast(){
+      let t = document.getElementById('authToast');
+      if(!t){
+        t = document.createElement('div'); t.id='authToast';
+        t.style.position='fixed'; t.style.bottom='20px'; t.style.right='20px'; t.style.background='linear-gradient(135deg,#ff8a00,#ffb347)'; t.style.color='#081017'; t.style.padding='12px 16px'; t.style.borderRadius='12px'; t.style.boxShadow='0 10px 30px rgba(0,0,0,.2)'; t.style.zIndex=60;
+        t.innerHTML = `Você precisa fazer login com sua conta do Discord para enviar uma proposta. <a href="http://localhost:3000/auth/discord" style="margin-left:10px;font-weight:800;color:#081017;">Entrar</a>`;
+        document.body.appendChild(t);
+        setTimeout(()=>t.remove(),8000);
+      }
+    }
+
+    // Proposal modal handling
+    function openProposalModal(contractId, user){
+      const modal = document.getElementById('proposalModal');
+      modal.classList.add('show'); modal.setAttribute('aria-hidden','false');
+      modal.dataset.contractId = contractId;
+      document.getElementById('propContractValue').textContent = formatContractValue(licitacoes.find(l=>l.id===contractId)||{});
+      document.getElementById('propContractDeadline').textContent = (licitacoes.find(l=>l.id===contractId)||{}).deadline || '—';
+      // reset form
+      document.getElementById('acceptValueYes').checked = true;
+      document.getElementById('acceptDeadlineYes').checked = true;
+      document.getElementById('newValueWrap').style.display='none';
+      document.getElementById('newDeadlineWrap').style.display='none';
+      document.getElementById('propMessage').value = '';
+    }
+
+    document.addEventListener('click', (e)=>{
+      if(e.target && e.target.id==='proposalClose'){
+        const m = document.getElementById('proposalModal'); m.classList.remove('show'); m.setAttribute('aria-hidden','true');
+      }
+    });
+
+    // toggle display for dynamic fields
+    document.addEventListener('change', (e)=>{
+      if(e.target && e.target.name==='acceptValue'){
+        document.getElementById('newValueWrap').style.display = e.target.value==='no' ? 'block' : 'none';
+      }
+      if(e.target && e.target.name==='acceptDeadline'){
+        document.getElementById('newDeadlineWrap').style.display = e.target.value==='no' ? 'block' : 'none';
+      }
+      if(e.target && e.target.id==='c_value_mode'){
+        const negotiable = e.target.value === 'negotiable';
+        document.getElementById('c_value_wrap').style.display = negotiable ? 'none' : 'block';
+        document.getElementById('c_value').required = !negotiable;
+      }
+    });
+
+    // comment help toggle
+    document.addEventListener('click', (e)=>{
+      if(e.target && e.target.id==='commentHelpToggle'){
+        const ch = document.getElementById('commentHelp');
+        if(ch) ch.style.display = ch.style.display==='block' ? 'none' : 'block';
+      }
+    });
+
+    // submit proposal
+    document.addEventListener('click', async (e)=>{
+      if(e.target && e.target.id==='sendProposalBtn'){
+        const modal = document.getElementById('proposalModal');
+        const contractId = Number(modal.dataset.contractId);
+        const acceptValue = document.querySelector('input[name="acceptValue"]:checked').value === 'yes';
+        const acceptDeadline = document.querySelector('input[name="acceptDeadline"]:checked').value === 'yes';
+        const newValue = document.getElementById('newValue').value ? Number(document.getElementById('newValue').value) : null;
+        const newDeadline = document.getElementById('newDeadline').value || null;
+        const message = document.getElementById('propMessage').value.trim();
+        if(!acceptValue && !newValue){ alert('Digite o novo valor proposto.'); return; }
+        if(!acceptDeadline && !newDeadline){ alert('Informe o novo prazo proposto.'); return; }
+        try{
+          const resp = await fetch('http://localhost:3000/api/propostas', { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ contractId, acceptValue, acceptDeadline, newValue, newDeadline, message }) });
+          const data = await resp.json();
+          if(resp.ok){
+            // close and refresh history
+            modal.classList.remove('show'); modal.setAttribute('aria-hidden','true');
+            fetchProposals(contractId);
+            // also show a brief success toast
+            const t = document.createElement('div'); t.style.position='fixed'; t.style.bottom='20px'; t.style.left='20px'; t.style.background='linear-gradient(135deg,#5aa6ff,#84c4ff)'; t.style.color='#041018'; t.style.padding='12px 16px'; t.style.borderRadius='12px'; t.style.zIndex=60; t.textContent='Proposta enviada com sucesso.'; document.body.appendChild(t); setTimeout(()=>t.remove(),5000);
+          } else { alert(data.error || 'Falha ao enviar proposta'); }
+        }catch(err){console.error(err);alert('Erro ao enviar proposta');}
+      }
+    });
+
+    document.getElementById('closeModal').addEventListener('click', () => {
+      document.getElementById('contractModal').classList.remove('show');
+    });
+
+    document.getElementById('contractModal').addEventListener('click', (event) => {
+      if (event.target.id === 'contractModal') {
+        event.target.classList.remove('show');
+      }
+    });
+
+    searchInput.addEventListener('input', renderList);
+    renderFilters();
+    renderList();
+    loadSavedContracts();
+    loadEntityLogos();
+  </script>
+  <script>
+    function receivedProposalStatus(status){
+      return status === 'ACEITA' ? '✅ Aceita' : status === 'RECUSADA' ? '❌ Recusada' : '⏳ Pendente';
+    }
+
+    function renderReceivedProposals(proposals){
+      const container = document.getElementById('receivedProposalsList');
+      container.replaceChildren();
+      if(!proposals.length){
+        container.appendChild(element('div', 'Nenhuma proposta recebida para as licitações da sua empresa.', 'empty-state show'));
+        return;
+      }
+      proposals.forEach(proposal => {
+        const card = document.createElement('article');
+        card.style.cssText = 'padding:16px 0;border-bottom:1px solid rgba(255,255,255,.08)';
+        const heading = element('strong', `${proposal.contract.code} — ${proposal.contract.title}`);
+        heading.textContent = proposal.contract.title;
+        const sender = element('div', `Enviada por ${proposal.user.username} em ${formatOnlyDate(proposal.createdAt)}`);
+        sender.style.cssText = 'margin-top:5px;color:var(--muted);font-size:13px';
+        const status = element('div', receivedProposalStatus(proposal.status));
+        status.style.cssText = 'margin-top:10px;font-weight:800';
+        const terms = element('div', `Valor: ${proposal.acceptValue ? 'aceito' : 'nova proposta'} · Prazo: ${proposal.acceptDeadline ? 'aceito' : 'novo prazo'}`);
+        terms.style.cssText = 'margin-top:8px;color:var(--muted);font-size:14px';
+        const message = element('div', proposal.message || 'Sem comentários.');
+        message.style.cssText = 'margin-top:10px;white-space:pre-wrap;tab-size:4;overflow-wrap:anywhere';
+        card.append(heading, sender, status, terms, message);
+        if(proposal.status === 'PENDENTE'){
+          const actions = document.createElement('div');
+          actions.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;margin-top:14px';
+          const reject = element('button', 'Recusar');
+          reject.type = 'button'; reject.dataset.proposalId = proposal.id; reject.dataset.status = 'RECUSADA';
+          reject.style.cssText = 'padding:8px 12px;border-radius:8px;border:1px solid rgba(255,100,100,.45);background:transparent;color:#ffb0b0;font-weight:800';
+          const accept = element('button', 'Aprovar');
+          accept.type = 'button'; accept.dataset.proposalId = proposal.id; accept.dataset.status = 'ACEITA';
+          accept.style.cssText = 'padding:8px 12px;border-radius:8px;border:1px solid rgba(74,211,122,.45);background:linear-gradient(135deg,#4ad37a,#6fe6a1);color:#041018;font-weight:800';
+          actions.append(reject, accept); card.appendChild(actions);
+        }
+        container.appendChild(card);
+      });
+    }
+
+    async function openReceivedProposals(){
+      const modal = document.getElementById('receivedProposalsModal');
+      const container = document.getElementById('receivedProposalsList');
+      modal.classList.add('show'); modal.setAttribute('aria-hidden', 'false');
+      container.replaceChildren(element('div', 'Carregando propostas...', 'empty-state show'));
+      try{
+        const response = await fetch('http://localhost:3000/api/propostas/recebidas', { credentials: 'include' });
+        const data = await response.json();
+        if(!response.ok) throw new Error(data.error || 'Não foi possível carregar as propostas');
+        renderReceivedProposals(data.proposals || []);
+      }catch(error){
+        container.replaceChildren(element('div', error.message || 'Não foi possível carregar as propostas.', 'empty-state show'));
+      }
+    }
+
+    async function decideProposal(proposalId, status){
+      const action = status === 'ACEITA' ? 'aprovar' : 'recusar';
+      if(!confirm(`Deseja ${action} esta proposta?`)) return;
+      try{
+        const response = await fetch(`http://localhost:3000/api/propostas/${encodeURIComponent(proposalId)}/status`, {
+          method: 'PATCH', credentials: 'include', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status })
+        });
+        const data = await response.json();
+        if(!response.ok) throw new Error(data.error || 'Não foi possível atualizar a proposta');
+        if(status === 'ACEITA'){
+          const contract = licitacoes.find(item => item.id === data.proposal.contractId);
+          if(contract){ contract.status = 'ANDAMENTO'; renderList(); }
+        }
+        openReceivedProposals();
+      }catch(error){ alert(error.message || 'Erro ao atualizar proposta.'); }
+    }
+
+    document.getElementById('receivedProposalsBtn').addEventListener('click', openReceivedProposals);
+    document.getElementById('receivedProposalsClose').addEventListener('click', () => {
+      const modal = document.getElementById('receivedProposalsModal'); modal.classList.remove('show'); modal.setAttribute('aria-hidden', 'true');
+    });
+    document.getElementById('receivedProposalsModal').addEventListener('click', event => {
+      if(event.target.id === 'receivedProposalsModal') event.currentTarget.classList.remove('show');
+    });
+    document.getElementById('receivedProposalsList').addEventListener('click', event => {
+      const button = event.target.closest('button[data-proposal-id]');
+      if(button) decideProposal(button.dataset.proposalId, button.dataset.status);
+    });
+
+    document.getElementById('closeContractBtn').addEventListener('click', event => {
+      const closeModal = document.getElementById('closeContractModal');
+      closeModal.dataset.contractId = event.currentTarget.dataset.contractId;
+      document.getElementById('closeContractReason').value = '';
+      closeModal.classList.add('show'); closeModal.setAttribute('aria-hidden', 'false');
+    });
+    document.getElementById('editContractBtn').addEventListener('click', event => {
+      const contract = licitacoes.find(item => item.id === Number(event.currentTarget.dataset.contractId)); if(!contract) return;
+      const modal = document.getElementById('editContractModal'); modal.dataset.contractId = String(contract.id);
+      document.getElementById('e_title').value = contract.title || '';
+      document.getElementById('e_value_mode').value = contract.valueToBeAgreed ? 'negotiable' : 'fixed';
+      document.getElementById('e_value').value = contract.valueToBeAgreed ? '' : Number(contract.value || 0);
+      document.getElementById('e_value_wrap').style.display = contract.valueToBeAgreed ? 'none' : 'block';
+      document.getElementById('e_deadline').value = contract.deadline || '';
+      document.getElementById('e_description').value = contract.description || '';
+      modal.classList.add('show'); modal.setAttribute('aria-hidden','false');
+    });
+    document.getElementById('editContractCloseBtn').addEventListener('click', () => { const modal=document.getElementById('editContractModal'); modal.classList.remove('show'); modal.setAttribute('aria-hidden','true'); });
+    document.getElementById('e_value_mode').addEventListener('change', event => { document.getElementById('e_value_wrap').style.display = event.target.value === 'negotiable' ? 'none' : 'block'; });
+    document.getElementById('saveEditContractBtn').addEventListener('click', async () => {
+      const modal = document.getElementById('editContractModal'); const contractId = Number(modal.dataset.contractId);
+      const valueToBeAgreed = document.getElementById('e_value_mode').value === 'negotiable';
+      const value = document.getElementById('e_value').value ? Number(document.getElementById('e_value').value) : 0;
+      const payload = { title:document.getElementById('e_title').value.trim(), value, valueToBeAgreed, deadline:document.getElementById('e_deadline').value || null, description:document.getElementById('e_description').value.trim() };
+      if(!payload.title || (!valueToBeAgreed && (!Number.isFinite(value) || value < 0))){ alert('Preencha o título e um valor válido, ou selecione A combinar.'); return; }
+      const response = await fetch(`http://localhost:3000/api/contratos/${contractId}`, { method:'PATCH', credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) }); const data = await response.json();
+      if(!response.ok){ alert(data.error || 'Não foi possível editar a licitação.'); return; }
+      const index = licitacoes.findIndex(item => item.id === contractId); if(index !== -1) Object.assign(licitacoes[index], data.contract);
+      modal.classList.remove('show'); modal.setAttribute('aria-hidden','true'); document.getElementById('contractModal').classList.remove('show'); renderList();
+    });
+    document.getElementById('deleteContractBtn').addEventListener('click', async event => {
+      const contractId = Number(event.currentTarget.dataset.contractId);
+      const contract = licitacoes.find(item => item.id === contractId);
+      if(!contract) return;
+      if(!confirm(`Excluir a licitação “${contract.title}”? Esta ação também excluirá todas as propostas vinculadas e não poderá ser desfeita.`)) return;
+      try{
+        const response = await fetch(`http://localhost:3000/api/contratos/${contractId}`, { method: 'DELETE', credentials: 'include' });
+        const data = await response.json();
+        if(!response.ok) throw new Error(data.error || 'Não foi possível excluir a licitação');
+        const index = licitacoes.findIndex(item => item.id === contractId);
+        if(index !== -1) licitacoes.splice(index, 1);
+        document.getElementById('contractModal').classList.remove('show');
+        renderList();
+        alert('Licitação excluída com sucesso.');
+      }catch(error){ alert(error.message || 'Erro ao excluir a licitação.'); }
+    });
+    document.getElementById('closeContractClose').addEventListener('click', () => {
+      const closeModal = document.getElementById('closeContractModal'); closeModal.classList.remove('show'); closeModal.setAttribute('aria-hidden', 'true');
+    });
+    document.getElementById('closeContractModal').addEventListener('click', event => {
+      if(event.target.id === 'closeContractModal') event.currentTarget.classList.remove('show');
+    });
+    document.getElementById('confirmCloseContractBtn').addEventListener('click', async () => {
+      const closeModal = document.getElementById('closeContractModal');
+      const contractId = Number(closeModal.dataset.contractId);
+      const reason = document.getElementById('closeContractReason').value.trim();
+      if(!reason){ alert('Informe o motivo do encerramento.'); return; }
+      try{
+        const response = await fetch(`http://localhost:3000/api/contratos/${contractId}/encerrar`, {
+          method: 'PATCH', credentials: 'include', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ reason })
+        });
+        const data = await response.json();
+        if(!response.ok) throw new Error(data.error || 'Não foi possível encerrar a licitação');
+        const contract = licitacoes.find(item => item.id === contractId);
+        if(contract){
+          contract.status = data.contract.status;
+          contract.closeReason = data.contract.closeReason;
+          contract.closedAt = data.contract.closedAt;
+        }
+        closeModal.classList.remove('show'); closeModal.setAttribute('aria-hidden', 'true');
+        renderList(); openContract(contractId);
+      }catch(error){ alert(error.message || 'Erro ao encerrar a licitação.'); }
+    });
+
+    async function checkAuth(){
+      try{
+        const resp = await fetch('http://localhost:3000/auth/me', { credentials: 'include' });
+        const data = await resp.json();
+        const authArea = document.getElementById('authArea');
+        if(data.user){
+          isAdminUser = !!data.isAdmin;
+          const user = data.user;
+          let avatarUrl = null;
+          if (user.avatar) {
+            const ext = user.avatar.startsWith('a_') ? 'gif' : 'png';
+            avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=128`;
+          }
+          authArea.innerHTML = '';
+          const pill = document.createElement('div'); pill.className = 'user-pill';
+
+          const avatarWrap = document.createElement('div');
+          if(avatarUrl){
+            const img = document.createElement('img'); img.className = 'user-avatar'; img.src = avatarUrl; img.alt = user.username || 'avatar';
+            avatarWrap.appendChild(img);
+          } else {
+            const div = document.createElement('div'); div.className = 'user-avatar initials'; div.textContent = (user.username||'U').slice(0,1).toUpperCase();
+            avatarWrap.appendChild(div);
+          }
+          pill.appendChild(avatarWrap);
+
+          const name = document.createElement('span'); name.className = 'user-name'; name.textContent = user.username || 'Usuário';
+          pill.appendChild(name);
+
+          const logout = document.createElement('a'); logout.className = 'logout-btn'; logout.href = 'http://localhost:3000/auth/logout'; logout.textContent = 'Sair';
+          pill.appendChild(logout);
+
+          authArea.appendChild(pill);
+          // check if user has a company linked
+          try{
+            const r2 = await fetch('http://localhost:3000/api/my-company', { credentials: 'include' });
+            const j2 = await r2.json();
+            const hasCompany = !!(j2 && j2.company);
+            myCompanyId = hasCompany ? j2.company.id : null;
+            let createBtn = document.getElementById('createContractBtn');
+            if(createBtn){
+              createBtn.style.display = hasCompany ? 'inline-block' : 'none';
+            } else if(hasCompany){
+              const toolbar = document.querySelector('.toolbar');
+              if(toolbar){
+                let rightDiv = toolbar.querySelector('div[style*="margin-left"]');
+                if(!rightDiv){
+                  rightDiv = document.createElement('div');
+                  rightDiv.style.marginLeft = '12px';
+                  rightDiv.style.display = 'flex';
+                  rightDiv.style.gap = '8px';
+                  rightDiv.style.alignItems = 'center';
+                  toolbar.appendChild(rightDiv);
+                }
+                createBtn = document.createElement('button');
+                createBtn.id = 'createContractBtn';
+                createBtn.textContent = 'Criar Licitação';
+                createBtn.style.background = 'linear-gradient(135deg,#4ad37a,#6fe6a1)';
+                createBtn.style.border = '1px solid rgba(90,166,255,.4)';
+                createBtn.style.color = '#041018';
+                createBtn.style.padding = '8px 12px';
+                createBtn.style.borderRadius = '10px';
+                createBtn.style.fontWeight = '800';
+                rightDiv.insertBefore(createBtn, rightDiv.firstChild || null);
+              }
+            }
+            const receivedBtn = document.getElementById('receivedProposalsBtn');
+            receivedBtn.style.display = hasCompany ? 'inline-block' : 'none';
+            // show admin button if server marked user as admin (create if missing)
+            const adminBtn = document.getElementById('adminPanelBtn');
+            if(adminBtn){
+              adminBtn.style.display = data.isAdmin ? 'inline-block' : 'none';
+              if(data.isAdmin) adminBtn.onclick = ()=>{ document.getElementById('adminModal').classList.add('show'); document.getElementById('adminModal').setAttribute('aria-hidden','false'); };
+            } else if(data.isAdmin){
+              const toolbar = document.querySelector('.toolbar');
+              if(toolbar){
+                let rightDiv = toolbar.querySelector('div[style*="margin-left"]');
+                if(!rightDiv){
+                  rightDiv = document.createElement('div');
+                  rightDiv.style.marginLeft = '12px';
+                  rightDiv.style.display = 'flex';
+                  rightDiv.style.gap = '8px';
+                  rightDiv.style.alignItems = 'center';
+                  toolbar.appendChild(rightDiv);
+                }
+                const btn = document.createElement('button');
+                btn.id = 'adminPanelBtn';
+                btn.textContent = 'Admin';
+                btn.style.background = '#333';
+                btn.style.border = '1px solid var(--line)';
+                btn.style.color = 'var(--muted)';
+                btn.style.padding = '8px 10px';
+                btn.style.borderRadius = '10px';
+                btn.onclick = ()=>{ document.getElementById('adminModal').classList.add('show'); document.getElementById('adminModal').setAttribute('aria-hidden','false'); };
+                rightDiv.appendChild(btn);
+              }
+            }
+          }catch(e){ console.error('Failed check my-company',e); }
+        }
+      }catch(err){console.error('Auth check failed',err)}
+    }
+    document.addEventListener('DOMContentLoaded', checkAuth);
+
+    // Create contract button handlers
+    document.addEventListener('click', async (e)=>{
+      if(e.target && e.target.id==='createContractBtn'){
+        const modal = document.getElementById('createContractModal'); modal.classList.add('show'); modal.setAttribute('aria-hidden','false');
+      }
+      if(e.target && (e.target.id==='createContractClose' || e.target.id==='createContractCloseBtn')){
+        const m = document.getElementById('createContractModal'); m.classList.remove('show'); m.setAttribute('aria-hidden','true');
+      }
+      if(e.target && e.target.id==='submitCreateContractBtn'){
+        const title = document.getElementById('c_title').value.trim();
+        const valueToBeAgreed = document.getElementById('c_value_mode').value === 'negotiable';
+        const value = document.getElementById('c_value').value ? Number(document.getElementById('c_value').value) : 0;
+        const deadline = document.getElementById('c_deadline').value || null;
+        const description = document.getElementById('c_description').value.trim();
+        if(!title){ alert('Preencha o título.'); return; }
+        if(!valueToBeAgreed && (!Number.isFinite(value) || value < 0)){ alert('Informe um valor válido ou selecione A combinar.'); return; }
+        try{
+          const resp = await fetch('http://localhost:3000/api/contratos', { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ title, value, valueToBeAgreed, deadline, description, contractTitle: title, contractText: description }) });
+          const data = await resp.json();
+          if(resp.ok && data.contract){
+            // push to local licitacoes list for immediate render
+            const c = data.contract;
+            licitacoes.unshift({ id: c.id, code: c.code, title: c.title, orgao: c.orgao, city: c.city, state: c.state, category: c.category || '', modality: c.modality || '', status: c.status || 'ABERTA', value: c.value, valueToBeAgreed: !!c.valueToBeAgreed, deadline: c.deadline, description: c.description, contractTitle: c.contractTitle, contractText: c.contractText, companyId: c.companyId, createdAt: c.createdAt || null, closeReason: c.closeReason || '', closedAt: c.closedAt || null });
+            licitacoes[0].bidNumber = c.bidNumber || '';
+            renderList();
+            const m = document.getElementById('createContractModal'); m.classList.remove('show'); m.setAttribute('aria-hidden','true');
+            const t = document.createElement('div'); t.style.position='fixed'; t.style.bottom='20px'; t.style.left='20px'; t.style.background='linear-gradient(135deg,#4ad37a,#6fe6a1)'; t.style.color='#041018'; t.style.padding='12px 16px'; t.style.borderRadius='12px'; t.style.zIndex=60; t.textContent='Licitação criada com sucesso.'; document.body.appendChild(t); setTimeout(()=>t.remove(),5000);
+          } else { alert(data.error || 'Falha ao criar licitação'); }
+        }catch(err){ console.error(err); alert('Erro ao criar licitação'); }
+      }
+    });
+
+    // Admin modal handlers
+    document.addEventListener('click', async (e)=>{
+      if(e.target && e.target.id==='adminClose'){
+        const m = document.getElementById('adminModal'); m.classList.remove('show'); m.setAttribute('aria-hidden','true');
+      }
+      if(e.target && e.target.id==='admin_create_company'){
+        const name = document.getElementById('admin_company_name').value.trim();
+        if(!name){ alert('Informe o nome da empresa'); return; }
+        try{
+          const resp = await fetch('http://localhost:3000/api/empresas', { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name }) });
+          const j = await resp.json();
+          if(resp.ok){ document.getElementById('admin_feedback').textContent = 'Empresa criada: ' + j.company.name; document.getElementById('admin_company_name_link').value = j.company.name; }
+          else { alert(j.error || 'Erro ao criar empresa'); }
+        }catch(err){ console.error(err); alert('Erro ao criar empresa'); }
+      }
+      if(e.target && e.target.id==='admin_link_user'){
+        const userNickname = document.getElementById('admin_user_nickname').value.trim();
+        const companyName = document.getElementById('admin_company_name_link').value.trim();
+        if(!userNickname || !companyName){ alert('Preencha usuário e empresa'); return; }
+        try{
+          const resp = await fetch(`http://localhost:3000/api/users/${encodeURIComponent(userNickname)}/link-company`, { method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ companyName }) });
+          const j = await resp.json();
+          if(resp.ok){ document.getElementById('admin_feedback').textContent = `${j.user.username} vinculado à ${j.company.name}.`; }
+          else { alert(j.error || 'Erro ao vincular usuário'); }
+        }catch(err){ console.error(err); alert('Erro ao vincular usuário'); }
+      }
+    });
+  </script>
+  <script src="footer-popups.js"></script>
+</body>
+</html>

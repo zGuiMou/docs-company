@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: docs-company
+    runtime: node
+    rootDir: docs_company/auth-server
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /auth/me
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DISCORD_CLIENT_ID
+        sync: false
+      - key: DISCORD_CLIENT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: REDIRECT_URI
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false

@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Nossas Soluções — Docs Company</title>
+  <style>
+    :root{
+      --bg:#05070a;--panel:#0a1017;--panel-soft:#0d141b;--text:#f5f7fa;--muted:#97a6b7;--line:rgba(255,255,255,.08);--blue:#5aa6ff;--shadow:0 24px 80px rgba(0,0,0,.28)
+    }
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at top,rgba(90,166,255,.12),transparent 18%),linear-gradient(180deg,#05070a,#091018 100%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}a{color:inherit;text-decoration:none}article{display:block}
+    .nav{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:20;width:min(1120px,calc(100% - 32px));display:flex;align-items:center;justify-content:center;padding:9px 12px;border:1px solid var(--line);background:rgba(5,7,10,.78);backdrop-filter:blur(18px);border-radius:15px;box-shadow:0 18px 40px rgba(0,0,0,.18)}
+    .brand-wrap{display:flex;flex-direction:row;align-items:center;gap:10px;position:absolute;left:18px}.brand{display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;letter-spacing:-.06em}.brand-text{display:inline-flex;align-items:flex-start;flex-direction:column;line-height:1}.brand-main{display:inline-flex;align-items:center;letter-spacing:-.06em}.brand-sub{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#aeb8c5;margin-top:4px}.dot{color:var(--blue)}.brand-mark{position:relative;width:48px;height:48px;display:block;transform-style:preserve-3d;transition:transform .25s ease,filter .25s ease;filter:drop-shadow(0 12px 22px rgba(43,102,255,.32));cursor:pointer}.brand-mark svg{width:100%;height:100%;display:block;overflow:visible}.brand-mark .mark-core{fill:#f5f7fa}.brand-mark .mark-cut{fill:#080c11}.brand-mark .mark-dot{fill:#2c6df6;filter:drop-shadow(0 0 18px rgba(44,109,246,.9))}.brand-mark:hover{filter:drop-shadow(0 18px 28px rgba(43,102,255,.5))}
+    .navlinks{display:flex;gap:3px}.navlinks a{padding:9px 13px;border:1px solid transparent;border-radius:8px;color:#aeb8c5;font-size:13px;transition:.2s}.navlinks a:hover,.navlinks a.active{color:#fff;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18)}
+    /* Discord button + user pill */
+    .discord-login{position:absolute;right:18px;top:10px;z-index:24;display:inline-flex;align-items:center;gap:10px;padding:9px 14px;border-radius:10px;background:linear-gradient(135deg,#ff8a00,#ffb347);color:#081017;font-weight:800;border:1px solid rgba(255,140,36,.16);box-shadow:0 10px 30px rgba(255,138,36,.12);font-size:13px;text-transform:uppercase}
+    .discord-login svg{width:18px;height:18px;display:block}
+    .user-pill{position:absolute;right:18px;top:10px;z-index:24;display:flex;align-items:center;gap:8px;height:38px;max-width:calc(100% - 36px);padding:4px 10px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.04);font-weight:700}
+    .user-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover}
+    .user-avatar.initials{display:grid;place-items:center;background:linear-gradient(135deg,#5aa6ff,#84c4ff);color:#07131d;font-weight:800;width:28px;height:28px;border-radius:50%}
+    .user-name{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#eaf6ff;font-size:13px}
+    .logout-btn{padding:6px 10px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);text-decoration:none;font-size:13px}
+    .page-top{padding:120px 24px 40px}.wrap{width:min(1180px,100%);margin:auto}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.2em;color:var(--blue);margin-bottom:20px}.section-title{font-size:clamp(42px,6vw,76px);line-height:.96;letter-spacing:-.07em;margin:0 0 18px}.section-lead{font-size:17px;line-height:1.7;color:var(--muted);max-width:760px;margin:0 0 32px}
+    .journey{position:relative;margin:48px auto 8px;padding:10px 0 24px;max-width:1060px}.journey::before{content:"";position:absolute;top:30px;bottom:30px;left:50%;width:1px;background:linear-gradient(#5aa6ff,rgba(90,166,255,.12),#ffb26b,rgba(90,166,255,.12),#5aa6ff);box-shadow:0 0 18px rgba(90,166,255,.28)}
+    .chapter{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:88px;align-items:center;min-height:450px;margin:0 0 86px}.chapter:nth-of-type(even) .chapter-copy{order:2}.chapter:nth-of-type(even) .chapter-media{order:1}.chapter-marker{position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);width:54px;height:54px;display:grid;place-items:center;border-radius:50%;border:1px solid rgba(132,196,255,.55);background:#0c1723;color:#84c4ff;font-size:12px;font-weight:900;box-shadow:0 0 0 8px rgba(5,7,10,.88),0 0 24px rgba(90,166,255,.35)}
+    .chapter-copy{position:relative;padding:34px;border:1px solid rgba(132,196,255,.2);border-radius:18px;background:linear-gradient(145deg,rgba(17,34,51,.94),rgba(8,14,22,.9));box-shadow:0 20px 45px rgba(0,0,0,.2)}.chapter-copy small{color:#84c4ff;text-transform:uppercase;letter-spacing:.16em;font-size:11px;font-weight:800}.chapter-copy h2{margin:13px 0;font-size:clamp(28px,3.2vw,45px);line-height:1;letter-spacing:-.06em}.chapter-copy p{margin:0;color:#b6c3d1;line-height:1.75;font-size:15px}.chapter-copy strong{color:#f5f7fa}.chapter-link{display:inline-flex;margin-top:22px;padding:10px 13px;border-radius:9px;background:rgba(90,166,255,.12);border:1px solid rgba(90,166,255,.28);color:#dbeeff;font-size:12px;font-weight:800}
+    .chapter-media{position:relative;min-height:342px;overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:18px;background:#0e1d2d;box-shadow:0 24px 48px rgba(0,0,0,.28)}.chapter-media img{width:100%;height:342px;object-fit:cover;display:block;filter:saturate(.8) contrast(1.06);transition:transform .7s ease}.chapter:hover .chapter-media img{transform:scale(1.045)}
+    .journey-arrow{position:relative;height:46px;margin:-64px 0 40px;pointer-events:none}.journey-arrow::before{content:"";position:absolute;left:calc(50% - 9px);top:4px;width:18px;height:18px;border-right:2px solid #84c4ff;border-bottom:2px solid #84c4ff;transform:rotate(45deg);filter:drop-shadow(0 0 8px rgba(90,166,255,.75));animation:arrowFloat 1.8s ease-in-out infinite}@keyframes arrowFloat{50%{transform:translateY(8px) rotate(45deg);opacity:.55}}
+    .reveal{opacity:0;transform:translateY(38px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.75,.2,1)}.chapter:nth-of-type(even) .reveal{transform:translateY(38px) translateX(26px)}.reveal.visible{opacity:1;transform:translate(0)}
+    .image-manager-toggle{position:fixed;right:22px;bottom:22px;z-index:25;padding:12px 15px;border:1px solid rgba(90,166,255,.5);border-radius:10px;background:#0c1c2d;color:#eaf6ff;font-weight:900;box-shadow:0 14px 34px rgba(0,0,0,.35);cursor:pointer}.image-manager{position:fixed;right:22px;bottom:76px;z-index:25;width:min(430px,calc(100% - 36px));max-height:calc(100vh - 100px);overflow:auto;padding:20px;border:1px solid rgba(90,166,255,.35);border-radius:14px;background:#0b131d;box-shadow:0 24px 60px rgba(0,0,0,.48)}.image-manager h3{margin:0 0 6px}.image-manager p{margin:0 0 16px;color:var(--muted);font-size:12px;line-height:1.5}.image-manager label{display:block;margin:10px 0 5px;color:#dbeeff;font-size:12px;font-weight:800}.image-manager input,.image-manager textarea{width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;background:#07111c;color:var(--text);font:inherit}.image-manager textarea{min-height:72px;resize:vertical}.image-manager details{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}.image-manager summary{cursor:pointer;color:#84c4ff;font-weight:900}.image-manager-actions{display:flex;gap:8px;margin-top:15px}.image-manager button{padding:9px 12px;border:0;border-radius:8px;background:#5aa6ff;color:#041018;font-weight:900;cursor:pointer}.image-manager button.secondary{background:transparent;color:var(--muted);border:1px solid var(--line)}
+    footer{border-top:1px solid var(--line);padding:30px 24px;color:#687382;font-size:12px}.footer{width:min(1080px,100%);margin:auto;display:grid;grid-template-columns:1fr 2fr 1fr;gap:30px;align-items:center}.footer-brand{font-size:20px;font-weight:900;color:#dfe5ed;letter-spacing:-.06em}.footer-note{line-height:1.65;border-left:1px solid #34404e;padding-left:30px}.footer-links{display:flex;justify-content:flex-end;gap:15px}.footer-links a:hover{color:#fff}
+    @media(max-width:800px){.brand{position:static}.nav{justify-content:space-between}.navlinks{margin-left:auto}.journey::before{left:26px}.chapter{grid-template-columns:1fr;gap:18px;min-height:0;margin:0 0 64px;padding-left:54px}.chapter:nth-of-type(even) .chapter-copy,.chapter:nth-of-type(even) .chapter-media{order:initial}.chapter-marker{left:26px;top:38px;width:42px;height:42px}.chapter-copy{padding:28px}.chapter-media,.chapter-media img{min-height:260px;height:260px}.journey-arrow{display:none}.footer{grid-template-columns:1fr}.footer-note{border-left:0;border-top:1px solid #34404e;padding:20px 0 0}.footer-links{justify-content:flex-start}}
+    @media(max-width:600px){.nav{top:10px;width:calc(100% - 20px)}.brand{display:none}.navlinks{width:100%;justify-content:center}.navlinks a{padding:8px 7px;font-size:11px}.page-top{padding-left:18px;padding-right:18px}.chapter{padding-left:42px}.journey::before{left:20px}.chapter-marker{left:20px}.chapter-copy{padding:24px 20px}.chapter-copy h2{font-size:31px}.chapter-media,.chapter-media img{min-height:220px;height:220px}}
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="index.html"><span class="brand-wrap"><span class="brand-mark" aria-label="Logo DOCS"><svg viewBox="0 0 120 120" role="img" aria-hidden="true"><path class="mark-core" d="M30 16H62C90 16 108 34 108 60C108 86 90 104 62 104H30V16ZM52 36V84H62C77 84 88 76 88 60C88 44 77 36 62 36H52Z"/><path class="mark-cut" d="M60 38H62C74 38 82 47 82 60C82 73 74 82 62 82H60V38Z"/><circle class="mark-dot" cx="94" cy="90" r="14"/></svg></span><span class="brand-text"><span class="brand-main">DOCS<span class="dot">.</span></span><span class="brand-sub">Company</span></span></span></a>
+    <nav class="navlinks">
+      <a href="index.html">Início</a>
+      <a class="active" href="servicos.html">Nossas Soluções</a>
+      <a href="licitacoes.html">Licitações e Contratos</a>
+      <a href="parceiros.html">Entidades</a>
+    </nav>
+    <div id="authArea">
+      <a class="discord-login" href="http://localhost:3000/auth/discord" title="Entrar com Discord">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="#081017" d="M20.317 4.369A19.791 19.791 0 0 0 16.993 3c-.24.428-.52.99-.714 1.435-2.13 0-4.26 0-6.39 0-.194-.445-.474-1.007-.714-1.435A19.791 19.791 0 0 0 3.683 4.37C2.07 8.229 1.728 11.999 2 15.708c4.21 3.09 8.29 3.674 11.26 3.4.84-.07 1.65-.2 2.42-.37.18-.04.36-.11.53-.18.01 0 .02-.01.03-.01.23-.1.34-.31.28-.57-.21-.76-.44-1.52-.7-2.26-.03-.09-.07-.18-.12-.27-.02-.04-.05-.07-.08-.11-.1-.12-.2-.23-.31-.34-.05-.05-.11-.09-.16-.14-.12-.11-.25-.22-.38-.33-.15-.12-.29-.25-.44-.37-.19-.16-.36-.33-.53-.5-.14-.14-.28-.28-.41-.42-.13-.13-.25-.27-.37-.4-.04-.05-.07-.09-.11-.14l-.01-.01c-.22-.28-.43-.57-.63-.86-.08-.12-.16-.24-.24-.36-.09-.12-.18-.24-.27-.36-.11-.14-.22-.28-.33-.42-.08-.11-.17-.22-.26-.33-.12-.15-.25-.3-.38-.45-.08-.09-.17-.18-.25-.27-.09-.09-.19-.18-.28-.27-.16-.16-.32-.33-.48-.49-.07-.08-.14-.15-.21-.23-.07-.07-.14-.14-.21-.21-.08-.08-.16-.16-.24-.24C12.66 8.41 12.5 8.24 12.33 8.08c-.06-.06-.12-.12-.18-.18-.22-.21-.45-.42-.67-.63"/></svg>
+        Entrar com Discord
+      </a>
+    </div>
+  </header>
+
+  <main id="topo">
+    <section class="section page-top">
+      <div class="wrap">
+        <div class="eyebrow" data-service-text="page-kicker">Nossas Soluções</div>
+        <h1 class="section-title" data-service-text="page-title">Nossas Soluções<span class="dot">.</span></h1>
+        <p class="section-lead" data-service-text="page-lead">A Docs. Company transforma documentos, negociações e obrigações em processos organizados, transparentes e confiáveis para empresas, prefeituras e cidadãos do continente.</p>
+
+        <div class="journey" aria-label="Jornada de soluções da Docs Company">
+          <article class="chapter">
+            <div class="chapter-marker">01</div>
+            <div class="chapter-copy reveal"><small data-service-text="cidadao-kicker">Cidadão EC</small><h2 data-service-text="cidadao-title">Informação que aproxima empresas, cidades e cidadãos.</h2><p data-service-text="cidadao-description">Reunimos registros empresariais e informações públicas em um só lugar. Assim, quem contrata, investe ou acompanha o continente encontra dados claros sobre as entidades que fazem a economia acontecer.</p><a class="chapter-link" href="parceiros.html">Consultar entidades →</a></div>
+            <div class="chapter-media reveal"><img data-service-image="cidadao" src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&q=85" alt="Espaço corporativo para substituir pela imagem da empresa"></div>
+          </article>
+          <div class="journey-arrow" aria-hidden="true"></div>
+          <article class="chapter">
+            <div class="chapter-marker">02</div>
+            <div class="chapter-copy reveal"><small data-service-text="governo-kicker">Governo Continental</small><h2 data-service-text="governo-title">Transparência nas relações entre empresas e prefeituras.</h2><p data-service-text="governo-description">A Docs. Company registra licitações, propostas e contratos públicos para que cada negociação tenha histórico, acompanhamento e informações acessíveis a todos os envolvidos.</p><a class="chapter-link" href="licitacoes.html">Acompanhar licitações →</a></div>
+            <div class="chapter-media reveal"><img data-service-image="governo" src="https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?auto=format&fit=crop&w=1200&q=85" alt="Prédio público para substituir pela imagem da prefeitura"></div>
+          </article>
+          <div class="journey-arrow" aria-hidden="true"></div>
+          <article class="chapter">
+            <div class="chapter-marker">03</div>
+            <div class="chapter-copy reveal"><small data-service-text="licencas-kicker">Licenças</small><h2 data-service-text="licencas-title">Documentos em ordem para sua empresa seguir adiante.</h2><p data-service-text="licencas-description">Apoiamos a conferência de documentos, autorizações e pendências administrativas. Sua empresa ganha mais controle sobre prazos e pode se preparar para novas operações com segurança.</p><a class="chapter-link" href="#topo">Organizar documentos →</a></div>
+            <div class="chapter-media reveal"><img data-service-image="licencas" src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1200&q=85" alt="Documentos empresariais para substituir por imagem personalizada"></div>
+          </article>
+          <div class="journey-arrow" aria-hidden="true"></div>
+          <article class="chapter">
+            <div class="chapter-marker">04</div>
+            <div class="chapter-copy reveal"><small data-service-text="justica-kicker">Justiça Continental</small><h2 data-service-text="justica-title">Históricos que dão segurança às decisões.</h2><p data-service-text="justica-description">Contratos, propostas e comunicações permanecem organizados para comprovar o que foi acordado, quando cada etapa ocorreu e quem participou. Mais clareza para prevenir conflitos e resolver dúvidas.</p><a class="chapter-link" href="licitacoes.html">Ver contratos →</a></div>
+            <div class="chapter-media reveal"><img data-service-image="justica" src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1200&q=85" alt="Referência jurídica para substituir por imagem personalizada"></div>
+          </article>
+          <div class="journey-arrow" aria-hidden="true"></div>
+          <article class="chapter">
+            <div class="chapter-marker">05</div>
+            <div class="chapter-copy reveal"><small data-service-text="registro-kicker">Registro Continental</small><h2 data-service-text="registro-title">Uma presença institucional à altura do crescimento da sua entidade.</h2><p data-service-text="registro-description">Do ramo de atuação ao patrimônio estimado, cada empresa ou prefeitura pode construir uma ficha institucional atualizada. É a base para ser reconhecida, acompanhada e encontrada no continente.</p><a class="chapter-link" href="parceiros.html">Conhecer o registro →</a></div>
+            <div class="chapter-media reveal"><img data-service-image="registro" src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=85" alt="Escritório corporativo para substituir pela imagem da empresa"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <button type="button" id="imageManagerToggle" class="image-manager-toggle" style="display:none">Editar imagens</button>
+  <section id="imageManager" class="image-manager" style="display:none" aria-label="Editor de imagens das soluções">
+    <h3>Imagens das soluções</h3>
+    <p>Edite textos e cole links diretos HTTPS (por exemplo, <code>https://i.imgur.com/imagem.png</code>). As alterações são salvas no servidor.</p>
+    <label for="image-cidadao">Cidadão EC</label><input id="image-cidadao" data-image-key="cidadao" type="url" placeholder="https://...">
+    <label for="image-governo">Governo Continental</label><input id="image-governo" data-image-key="governo" type="url" placeholder="https://...">
+    <label for="image-licencas">Licenças</label><input id="image-licencas" data-image-key="licencas" type="url" placeholder="https://...">
+    <label for="image-justica">Justiça Continental</label><input id="image-justica" data-image-key="justica" type="url" placeholder="https://...">
+    <label for="image-registro">Registro Continental</label><input id="image-registro" data-image-key="registro" type="url" placeholder="https://...">
+    <div id="serviceTextFields"></div>
+    <div class="image-manager-actions"><button type="button" id="saveServiceImages">Salvar alterações</button><button type="button" id="closeImageManager" class="secondary">Fechar</button></div>
+  </section>
+
+  <footer>
+    <div class="footer">
+      <div class="footer-brand">DOCS<span class="dot">.</span></div>
+      <div class="footer-note">Empresa do universo <strong>Expresso Continental</strong>, criada exclusivamente para fins de roleplay. Não possui vínculo com empresas de terceiros ou prefeituras no servidor.</div>
+      <div class="footer-links">
+        <button type="button" class="footer-popup-trigger" data-footer-popup="terms">Termos de Uso</button>
+        <button type="button" class="footer-popup-trigger" data-footer-popup="cookies">Cookies</button>
+        <button type="button" class="footer-popup-trigger" data-footer-popup="careers">Trabalhe Conosco</button>
+      </div>
+    </div>
+  </footer>
+  <script src="runtime-api.js"></script>
+  <script>
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.16 });
+    document.querySelectorAll('.reveal').forEach(item => revealObserver.observe(item));
+
+    const defaultServiceImages = Object.fromEntries([...document.querySelectorAll('[data-service-image]')].map(image => [image.dataset.serviceImage, image.src]));
+    const serviceImageInputs = [...document.querySelectorAll('[data-image-key]')];
+    const serviceTextElements = [...document.querySelectorAll('[data-service-text]')];
+    const defaultServiceTexts = Object.fromEntries(serviceTextElements.map(element => [element.dataset.serviceText, element.dataset.serviceText === 'page-title' ? element.textContent.trim().replace(/\.$/, '') : element.textContent.trim()]));
+    const textFieldGroups = [
+      ['Texto de abertura', ['page-kicker', 'page-title', 'page-lead']],
+      ['Cidadão EC', ['cidadao-kicker', 'cidadao-title', 'cidadao-description']],
+      ['Governo Continental', ['governo-kicker', 'governo-title', 'governo-description']],
+      ['Licenças', ['licencas-kicker', 'licencas-title', 'licencas-description']],
+      ['Justiça Continental', ['justica-kicker', 'justica-title', 'justica-description']],
+      ['Registro Continental', ['registro-kicker', 'registro-title', 'registro-description']]
+    ];
+    const textLabels = { kicker: 'Identificador', title: 'Título', description: 'Descrição', lead: 'Descrição' };
+    const textFieldHost = document.getElementById('serviceTextFields');
+    textFieldGroups.forEach(([groupName, keys]) => {
+      const group = document.createElement('details');
+      const summary = document.createElement('summary'); summary.textContent = `Editar textos: ${groupName}`; group.appendChild(summary);
+      keys.forEach(key => {
+        const suffix = key.split('-').pop();
+        const label = document.createElement('label'); label.textContent = textLabels[suffix] || 'Texto'; label.htmlFor = `text-${key}`;
+        const field = key.endsWith('description') || key === 'page-lead' ? document.createElement('textarea') : document.createElement('input');
+        field.id = `text-${key}`; field.dataset.textKey = key; field.value = defaultServiceTexts[key] || ''; group.append(label, field);
+      });
+      textFieldHost.appendChild(group);
+    });
+    const serviceTextInputs = [...document.querySelectorAll('[data-text-key]')];
+    function applyServiceImage(key, url) {
+      const image = document.querySelector(`[data-service-image="${key}"]`);
+      if (image) image.src = url || defaultServiceImages[key];
+    }
+    function applyServiceText(key, text) {
+      const element = document.querySelector(`[data-service-text="${key}"]`);
+      if (!element) return;
+      element.textContent = text || defaultServiceTexts[key];
+      if (key === 'page-title') { const dot = document.createElement('span'); dot.className = 'dot'; dot.textContent = '.'; element.appendChild(dot); }
+    }
+    async function loadServiceImages() {
+      try {
+        const response = await fetch('http://localhost:3000/api/config/solucoes-imagens');
+        const data = await response.json();
+        Object.entries(data.images || {}).forEach(([key, url]) => applyServiceImage(key, url));
+        serviceImageInputs.forEach(input => { input.value = (data.images || {})[input.dataset.imageKey] || ''; });
+      } catch (error) { console.warn('Não foi possível carregar as imagens das soluções.', error); }
+    }
+    async function loadServiceTexts() {
+      try {
+        const response = await fetch('http://localhost:3000/api/config/solucoes-textos');
+        const data = await response.json();
+        Object.entries(data.texts || {}).forEach(([key, text]) => applyServiceText(key, text));
+        serviceTextInputs.forEach(input => { input.value = (data.texts || {})[input.dataset.textKey] || defaultServiceTexts[input.dataset.textKey] || ''; });
+      } catch (error) { console.warn('Não foi possível carregar os textos das soluções.', error); }
+    }
+    serviceImageInputs.forEach(input => input.addEventListener('input', () => applyServiceImage(input.dataset.imageKey, input.value.trim())));
+    serviceTextInputs.forEach(input => input.addEventListener('input', () => applyServiceText(input.dataset.textKey, input.value.trim())));
+    document.getElementById('imageManagerToggle').addEventListener('click', () => { document.getElementById('imageManager').style.display = 'block'; });
+    document.getElementById('closeImageManager').addEventListener('click', () => { document.getElementById('imageManager').style.display = 'none'; });
+    document.getElementById('saveServiceImages').addEventListener('click', async () => {
+      const images = Object.fromEntries(serviceImageInputs.map(input => [input.dataset.imageKey, input.value.trim()]));
+      const texts = Object.fromEntries(serviceTextInputs.map(input => [input.dataset.textKey, input.value.trim()]));
+      const [imageResponse, textResponse] = await Promise.all([
+        fetch('http://localhost:3000/api/config/solucoes-imagens', { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ images }) }),
+        fetch('http://localhost:3000/api/config/solucoes-textos', { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ texts }) })
+      ]);
+      const imageData = await imageResponse.json(); const textData = await textResponse.json();
+      if (!imageResponse.ok || !textResponse.ok) { alert(imageData.error || textData.error || 'Não foi possível salvar as alterações.'); return; }
+      Object.entries(imageData.images || {}).forEach(([key, url]) => applyServiceImage(key, url));
+      Object.entries(textData.texts || {}).forEach(([key, text]) => applyServiceText(key, text));
+      alert('Textos e imagens salvos com sucesso.');
+      document.getElementById('imageManager').style.display = 'none';
+    });
+    loadServiceImages();
+    loadServiceTexts();
+
+    const brandMark = document.querySelector('.brand-mark');
+    if (brandMark) {
+      const reset = () => {
+        brandMark.style.transform = 'perspective(900px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+        brandMark.style.filter = 'drop-shadow(0 12px 22px rgba(43,102,255,.32))';
+      };
+
+      brandMark.addEventListener('pointermove', (event) => {
+        const rect = brandMark.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width;
+        const y = (event.clientY - rect.top) / rect.height;
+        const rotateY = (x - 0.5) * 18;
+        const rotateX = (0.5 - y) * 18;
+
+        brandMark.style.transform = `perspective(900px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+        brandMark.style.filter = `drop-shadow(${rotateY * 0.8}px ${rotateX * -0.8}px 22px rgba(43,102,255,.5))`;
+      });
+
+      brandMark.addEventListener('pointerleave', reset);
+      reset();
+    }
+  </script>
+  <script>
+    async function checkAuth(){
+      try{
+        const resp = await fetch('http://localhost:3000/auth/me', { credentials: 'include' });
+        const data = await resp.json();
+        const authArea = document.getElementById('authArea');
+        if(data.user){
+          const user = data.user;
+          let avatarUrl = null;
+          if (user.avatar) {
+            const ext = user.avatar.startsWith('a_') ? 'gif' : 'png';
+            avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=128`;
+          }
+          authArea.innerHTML = '';
+          const pill = document.createElement('div'); pill.className = 'user-pill';
+
+          const avatarWrap = document.createElement('div');
+          if(avatarUrl){
+            const img = document.createElement('img'); img.className = 'user-avatar'; img.src = avatarUrl; img.alt = user.username || 'avatar';
+            avatarWrap.appendChild(img);
+          } else {
+            const div = document.createElement('div'); div.className = 'user-avatar initials'; div.textContent = (user.username||'U').slice(0,1).toUpperCase();
+            avatarWrap.appendChild(div);
+          }
+          pill.appendChild(avatarWrap);
+
+          const name = document.createElement('span'); name.className = 'user-name'; name.textContent = user.username || 'Usuário';
+          pill.appendChild(name);
+
+          const logout = document.createElement('a'); logout.className = 'logout-btn'; logout.href = 'http://localhost:3000/auth/logout'; logout.textContent = 'Sair';
+          pill.appendChild(logout);
+
+          authArea.appendChild(pill);
+          if (String(user.id) === '602953921337491487') document.getElementById('imageManagerToggle').style.display = 'block';
+        }
+      }catch(err){console.error('Auth check failed',err)}
+    }
+    document.addEventListener('DOMContentLoaded', checkAuth);
+  </script>
+  <script src="footer-popups.js"></script>
+</body>
+</html>
