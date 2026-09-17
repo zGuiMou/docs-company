@@ -39,7 +39,7 @@ const commands = [
         .setDescription('Cria uma licitação no site. Administradores apenas.')
         .addStringOption((option) => option.setName('titulo').setDescription('Título.').setMaxLength(160).setRequired(true))
         .addNumberOption((option) => option.setName('valor').setDescription('Valor estimado em R$.').setMinValue(0).setRequired(true))
-        .addStringOption((option) => option.setName('prazo').setDescription('Prazo no formato AAAA-MM-DD.').setMaxLength(10))
+        .addStringOption((option) => option.setName('prazo').setDescription('Prazo no formato DD/MM/AAAA.').setMaxLength(10))
         .addStringOption((option) => option.setName('descricao').setDescription('Descrição.').setMaxLength(1000))
         .addStringOption((option) => option.setName('status').setDescription('Status inicial.').addChoices(...statusChoices)),
     )
@@ -54,7 +54,7 @@ const commands = [
         .addIntegerOption((option) => option.setName('id').setDescription('ID da licitação.').setRequired(true))
         .addStringOption((option) => option.setName('titulo').setDescription('Novo título.').setMaxLength(160))
         .addNumberOption((option) => option.setName('valor').setDescription('Novo valor em R$.').setMinValue(0))
-        .addStringOption((option) => option.setName('prazo').setDescription('Novo prazo AAAA-MM-DD.').setMaxLength(10))
+        .addStringOption((option) => option.setName('prazo').setDescription('Novo prazo DD/MM/AAAA.').setMaxLength(10))
         .addStringOption((option) => option.setName('descricao').setDescription('Nova descrição.').setMaxLength(1000))
         .addStringOption((option) => option.setName('status').setDescription('Novo status.').addChoices(...statusChoices)),
     )
@@ -97,6 +97,11 @@ function statusColor(status) {
   return 0x57f287;
 }
 
+function formatDate(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ''));
+  return match ? `${match[3]}/${match[2]}/${match[1]}` : 'Não informado';
+}
+
 function contractEmbed(contract, proposals = []) {
   return new EmbedBuilder()
     .setColor(statusColor(contract.status))
@@ -106,7 +111,7 @@ function contractEmbed(contract, proposals = []) {
       { name: 'Número da licitação', value: contract.bidNumber || contract.code || '-', inline: true },
       { name: 'Status', value: contract.status || 'ABERTA', inline: true },
       { name: 'Valor', value: formatMoney(contract.value, contract.valueToBeAgreed), inline: true },
-      { name: 'Prazo', value: contract.deadline || 'Não informado', inline: true },
+      { name: 'Prazo', value: formatDate(contract.deadline), inline: true },
       { name: 'Órgão', value: contract.orgao || 'Docs Company', inline: true },
       { name: 'Descrição', value: (contract.description || 'Sem descrição.').slice(0, 1000) },
       { name: 'Comentários', value: commentsForEmbed(proposals) },
@@ -123,7 +128,7 @@ function listingEmbed(contract, position) {
     .addFields(
       { name: 'Status', value: contract.status || 'ABERTA', inline: true },
       { name: 'Valor', value: formatMoney(contract.value, contract.valueToBeAgreed), inline: true },
-      { name: 'Prazo', value: contract.deadline || 'Não informado', inline: true },
+      { name: 'Prazo', value: formatDate(contract.deadline), inline: true },
     )
     .setFooter({ text: 'Licitação ' + (position + 1) + ' de ' + position.total + ' • Dados sincronizados com o site.' });
 }
@@ -149,7 +154,7 @@ function pageEmbed(contract, page, total, proposals = []) {
     .addFields(
       { name: 'Status', value: contract.status || 'ABERTA', inline: true },
       { name: 'Valor', value: formatMoney(contract.value, contract.valueToBeAgreed), inline: true },
-      { name: 'Prazo', value: contract.deadline || 'Não informado', inline: true },
+      { name: 'Prazo', value: formatDate(contract.deadline), inline: true },
       { name: 'Comentários', value: commentsForEmbed(proposals) },
     )
     .setFooter({ text: 'Página ' + (page + 1) + ' de ' + total + ' • Dados sincronizados com o site.' });
@@ -181,8 +186,8 @@ function proposalButton(contract) {
 function proposalModal(contractId) {
   const modal = new ModalBuilder().setCustomId('lic-proposal-modal:' + contractId).setTitle('Fazer proposta');
   const value = new TextInputBuilder().setCustomId('value').setLabel('Valor: Aceito ou novo valor (R$)').setValue('Aceito').setStyle(TextInputStyle.Short).setRequired(true).setMaxLength(30);
-  const deadline = new TextInputBuilder().setCustomId('deadline').setLabel('Prazo: Aceito ou AAAA-MM-DD').setValue('Aceito').setStyle(TextInputStyle.Short).setRequired(true).setMaxLength(10);
-  const comment = new TextInputBuilder().setCustomId('comment').setLabel('Comentários / justificativa (opcional)').setPlaceholder('Explique brevemente sua proposta.').setStyle(TextInputStyle.Paragraph).setRequired(false).setMaxLength(2000);
+  const deadline = new TextInputBuilder().setCustomId('deadline').setLabel('Prazo: Aceito ou DD/MM/AAAA').setValue('Aceito').setStyle(TextInputStyle.Short).setRequired(true).setMaxLength(10);
+  const comment = new TextInputBuilder().setCustomId('comment').setLabel('Comentário / justificativa (opcional)').setPlaceholder('Importante: explique sua proposta para aumentar as chances de seleção.').setStyle(TextInputStyle.Paragraph).setRequired(false).setMaxLength(2000);
   return modal.addComponents(
     new ActionRowBuilder().addComponents(value),
     new ActionRowBuilder().addComponents(deadline),
@@ -197,11 +202,15 @@ function parseBrazilianMoney(value) {
   const amount = Number(normalized);
   return Number.isFinite(amount) && amount >= 0 ? amount : null;
 }
-function isIsoDate(value) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const [year, month, day] = value.split('-').map(Number);
+function toIsoDate(value) {
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(value || '').trim());
+  if (!match) return null;
+  const [, dayText, monthText, yearText] = match;
+  const year = Number(yearText), month = Number(monthText), day = Number(dayText);
   const date = new Date(Date.UTC(year, month - 1, day));
-  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+    ? `${yearText}-${monthText}-${dayText}`
+    : null;
 }
 
 function commentMessages(proposals) {
@@ -264,9 +273,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const acceptValue = isAcceptedTerm(valueInput);
       const acceptDeadline = isAcceptedTerm(deadlineInput);
       const newValue = acceptValue ? null : parseBrazilianMoney(valueInput);
-      const newDeadline = acceptDeadline ? null : deadlineInput.trim();
+      const newDeadline = acceptDeadline ? null : toIsoDate(deadlineInput);
       if (!acceptValue && newValue === null) throw new Error('Informe Aceito ou um novo valor válido em R$.');
-      if (!acceptDeadline && !isIsoDate(newDeadline)) throw new Error('Informe Aceito ou um novo prazo no formato AAAA-MM-DD.');
+      if (!acceptDeadline && !newDeadline) throw new Error('Informe Aceito ou um novo prazo no formato DD/MM/AAAA.');
 
       await interaction.deferReply();
       const result = await request('/api/bot/contratos/' + encodeURIComponent(contractId) + '/propostas', {
@@ -324,7 +333,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
     if (subcommand === 'criar') {
       payload.title = interaction.options.getString('titulo', true);
       payload.value = interaction.options.getNumber('valor', true);
-      payload.deadline = interaction.options.getString('prazo') || '';
+      const deadlineInput = interaction.options.getString('prazo');
+      payload.deadline = deadlineInput ? toIsoDate(deadlineInput) : '';
+      if (deadlineInput && !payload.deadline) throw new Error('Informe o prazo no formato DD/MM/AAAA.');
       payload.description = interaction.options.getString('descricao') || '';
       payload.status = interaction.options.getString('status') || 'ABERTA';
       const data = await request('/api/bot/contratos', { method: 'POST', body: JSON.stringify(payload) });
@@ -335,7 +346,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
     if (subcommand === 'editar') {
       payload.title = interaction.options.getString('titulo') || undefined;
       payload.value = interaction.options.getNumber('valor') ?? undefined;
-      payload.deadline = interaction.options.getString('prazo') ?? undefined;
+      const deadlineInput = interaction.options.getString('prazo');
+      if (deadlineInput && !toIsoDate(deadlineInput)) throw new Error('Informe o prazo no formato DD/MM/AAAA.');
+      payload.deadline = deadlineInput ? toIsoDate(deadlineInput) : undefined;
       payload.description = interaction.options.getString('descricao') || undefined;
       payload.status = interaction.options.getString('status') || undefined;
       if (Object.keys(payload).length === 1) {
