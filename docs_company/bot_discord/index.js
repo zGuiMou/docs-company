@@ -160,10 +160,11 @@ async function pageEmbedWithComments(contract, page, total) {
   const proposalData = await request('/api/bot/contratos/' + encodeURIComponent(contract.id) + '/propostas');
   return pageEmbed(contract, page, total, proposalData.proposals || []);
 }
-function pageButtons(page, total) {
+function pageButtons(page, total, contract) {
   return [new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId('lic-prev:' + page).setLabel('◀ Anterior').setStyle(ButtonStyle.Secondary).setDisabled(page === 0),
     new ButtonBuilder().setCustomId('lic-next:' + page).setLabel('Próxima ▶').setStyle(ButtonStyle.Primary).setDisabled(page >= total - 1),
+    new ButtonBuilder().setCustomId('lic-proposal:' + contract.id).setLabel('Fazer proposta').setStyle(ButtonStyle.Success).setDisabled(contract.status === 'ENCERRADA'),
   )];
 }
 
@@ -252,7 +253,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const contracts = data.contracts || [];
     const page = Math.max(0, Math.min(contracts.length - 1, Number(match[2]) + (match[1] === 'next' ? 1 : -1)));
     const embed = await pageEmbedWithComments(contracts[page], page, contracts.length);
-    await interaction.editReply({ embeds: [embed], components: pageButtons(page, contracts.length) });
+    await interaction.editReply({ embeds: [embed], components: pageButtons(page, contracts.length, contracts[page]) });
     return;
   }
   if (interaction.isModalSubmit() && interaction.customId.startsWith('lic-proposal-modal:')) {
@@ -303,7 +304,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const contracts = (data.contracts || []).filter((contract) => !selectedStatus || contract.status === selectedStatus);
       if (!contracts.length) { await interaction.reply({ content: 'Nenhuma licitação cadastrada.' }); return; }
       const embed = await pageEmbedWithComments(contracts[0], 0, contracts.length);
-      await interaction.reply({ content: '📋 **Licitações da Docs Company**', embeds: [embed], components: pageButtons(0, contracts.length) });
+      await interaction.reply({ content: '📋 **Licitações da Docs Company**', embeds: [embed], components: pageButtons(0, contracts.length, contracts[0]) });
       return;
     }
     if (subcommand === 'ver') {
@@ -314,9 +315,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const data = await request('/api/bot/contratos/' + contractMatch.id);
       const proposalData = await request('/api/bot/contratos/' + contractMatch.id + '/propostas');
       await interaction.reply({ embeds: [contractEmbed(data.contract, proposalData.proposals || [])], components: [proposalButton(data.contract)] });
-      for (const message of commentMessages(proposalData.proposals || [])) {
-        await interaction.followUp({ content: message });
-      }
       return;
     }
 
