@@ -91,9 +91,15 @@ function formatMoney(value, valueToBeAgreed) {
   return valueToBeAgreed ? 'A combinar' : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
 }
 
-function contractEmbed(contract) {
+function statusColor(status) {
+  if (status === 'ENCERRADA') return 0xed4245;
+  if (status === 'ANDAMENTO') return 0xfee75c;
+  return 0x57f287;
+}
+
+function contractEmbed(contract, proposals = []) {
   return new EmbedBuilder()
-    .setColor(contract.status === 'ENCERRADA' ? 0xed4245 : contract.status === 'ANDAMENTO' ? 0xfee75c : 0x57f287)
+    .setColor(statusColor(contract.status))
     .setTitle(contract.title)
     .addFields(
       { name: 'Referência interna', value: String(contract.id), inline: true },
@@ -103,6 +109,7 @@ function contractEmbed(contract) {
       { name: 'Prazo', value: contract.deadline || 'Não informado', inline: true },
       { name: 'Órgão', value: contract.orgao || 'Docs Company', inline: true },
       { name: 'Descrição', value: (contract.description || 'Sem descrição.').slice(0, 1000) },
+      { name: 'Comentários', value: commentsForEmbed(proposals) },
     )
     .setFooter({ text: 'Dados sincronizados com o site.' });
 }
@@ -135,7 +142,7 @@ function commentsForEmbed(proposals) {
 
 function pageEmbed(contract, page, total, proposals = []) {
   const embed = new EmbedBuilder()
-    .setColor(0xFEE75C)
+    .setColor(statusColor(contract.status))
     .setAuthor({ name: contract.orgao || 'Docs Company' })
     .setTitle((page + 1) + 'ª LICITAÇÃO • ' + (contract.bidNumber || ('#' + contract.id)))
     .setDescription('**' + contract.title + '**' + (contract.description ? '\n\n' + contract.description.slice(0, 900) : ''))
@@ -305,8 +312,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const contractMatch = (list.contracts || []).find((contract) => contract.bidNumber === id || String(contract.id) === id);
       if (!contractMatch) throw new Error('Licitação não encontrada.');
       const data = await request('/api/bot/contratos/' + contractMatch.id);
-      await interaction.reply({ embeds: [contractEmbed(data.contract)], components: [proposalButton(data.contract)] });
       const proposalData = await request('/api/bot/contratos/' + contractMatch.id + '/propostas');
+      await interaction.reply({ embeds: [contractEmbed(data.contract, proposalData.proposals || [])], components: [proposalButton(data.contract)] });
       for (const message of commentMessages(proposalData.proposals || [])) {
         await interaction.followUp({ content: message });
       }
