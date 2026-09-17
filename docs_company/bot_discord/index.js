@@ -19,6 +19,7 @@ const apiKey = process.env.BOT_API_KEY;
 const token = process.env.DISCORD_TOKEN;
 const rulesChannelId = process.env.RULES_CHANNEL_ID || '1549529444987834509';
 const rulesImageUrl = process.env.RULES_IMAGE_URL || 'https://i.imgur.com/raDRCcV.png';
+const developmentChannelId = process.env.DEVELOPMENT_CHANNEL_ID || '1550243018122989678';
 const rulesStateFile = path.join(__dirname, 'data', 'rules-state.json');
 const rulesVersion = 2;
 
@@ -126,6 +127,26 @@ function rulesEmbed() {
     .setImage(rulesImageUrl);
 }
 
+function developmentEmbed() {
+  return new EmbedBuilder()
+    .setColor(0xf2c56d)
+    .setTitle('🚧 DOCS. COMPANY EM DESENVOLVIMENTO')
+    .setDescription([
+      'A Docs. Company está em fase de construção e estamos formando uma equipe comprometida para desenvolver nossos projetos, serviços e oportunidades.',
+      '',
+      '**Estamos procurando sócios que queiram se dedicar de verdade à equipe.**',
+      '',
+      'A principal qualidade que buscamos é a vontade de atuar no ramo administrativo: organizar processos, acompanhar projetos, atender parceiros, ajudar na tomada de decisões e fazer a empresa crescer.',
+      '',
+      'Não é necessário ter experiência em tudo. Compromisso, responsabilidade, iniciativa e interesse em aprender fazem toda a diferença.',
+    ].join('\n'))
+    .addFields({
+      name: '📩 Quer fazer parte?',
+      value: 'Procure a equipe da Docs. Company para conversar sobre as oportunidades de sociedade e atuação administrativa.',
+    })
+    .setFooter({ text: 'Construindo a Docs. Company juntos.' });
+}
+
 async function publishRulesOnce(readyClient) {
   let savedState = {};
   try {
@@ -154,6 +175,25 @@ async function publishRulesOnce(readyClient) {
   await fs.mkdir(path.dirname(rulesStateFile), { recursive: true });
   await fs.writeFile(rulesStateFile, JSON.stringify({ messageId: message.id, version: rulesVersion, publishedAt: new Date().toISOString() }, null, 2), 'utf8');
   console.log('Regras publicadas uma única vez no canal configurado.');
+}
+
+async function publishDevelopmentAnnouncementOnce(readyClient) {
+  let savedState = {};
+  try {
+    savedState = JSON.parse(await fs.readFile(rulesStateFile, 'utf8'));
+    if (savedState.developmentMessageId) return;
+  } catch (error) {
+    if (error.code !== 'ENOENT') console.warn('Não foi possível ler o estado do aviso de desenvolvimento:', error.message);
+  }
+
+  const channel = await readyClient.channels.fetch(developmentChannelId);
+  if (!channel || !channel.isTextBased() || typeof channel.send !== 'function') {
+    throw new Error('DEVELOPMENT_CHANNEL_ID não aponta para um canal de texto.');
+  }
+  const message = await channel.send({ embeds: [developmentEmbed()] });
+  await fs.mkdir(path.dirname(rulesStateFile), { recursive: true });
+  await fs.writeFile(rulesStateFile, JSON.stringify({ ...savedState, developmentMessageId: message.id, developmentPublishedAt: new Date().toISOString() }, null, 2), 'utf8');
+  console.log('Aviso de desenvolvimento publicado uma única vez no canal configurado.');
 }
 
 function formatMoney(value, valueToBeAgreed) {
@@ -367,6 +407,7 @@ client.once(Events.ClientReady, async (readyClient) => {
   await refreshEntityCache();
   setInterval(() => { void refreshEntityCache(); }, 5 * 60 * 1000).unref();
   await publishRulesOnce(readyClient).catch((error) => console.error('Não foi possível publicar as regras:', error.message));
+  await publishDevelopmentAnnouncementOnce(readyClient).catch((error) => console.error('Não foi possível publicar o aviso de desenvolvimento:', error.message));
   console.log(readyClient.user.tag + ' está online e sincronizado com o site. Entidades carregadas: ' + entityCache.values.length);
 });
 
