@@ -21,7 +21,7 @@ const token = process.env.DISCORD_TOKEN;
 const rulesChannelId = process.env.RULES_CHANNEL_ID || '1549529444987834509';
 const rulesImageUrl = process.env.RULES_IMAGE_URL || 'https://i.imgur.com/raDRCcV.png';
 const developmentChannelId = process.env.DEVELOPMENT_CHANNEL_ID || '1550243018122989678';
-const developmentVersion = 3;
+const developmentVersion = 4;
 const faqChannelId = process.env.FAQ_CHANNEL_ID || '1550243118287159346';
 const rulesStateFile = path.join(__dirname, 'data', 'rules-state.json');
 const rulesVersion = 5;
@@ -125,14 +125,14 @@ function rulesEmbed() {
 
 function developmentEmbed() {
   return new EmbedBuilder()
-    .setColor(0xf2c56d)
-    .setTitle('DOCS. COMPANY EM DESENVOLVIMENTO')
+    .setColor(0x3498db)
+    .setTitle('DOCS. COMPANY — EM DESENVOLVIMENTO')
     .setDescription([
-      'A Docs. Company está em desenvolvimento.',
-      '**Buscamos sócios comprometidos com a equipe.**\nA prioridade é ter vontade de atuar na área administrativa, organizar processos, acompanhar projetos e ajudar a empresa a crescer.',
-      '**Quer fazer parte?**\nProcure a equipe da Docs. Company para conversar sobre as oportunidades disponíveis.',
-    ].join('\n\n'))
-    .setFooter({ text: 'Construindo a Docs. Company juntos.' });
+      'Estamos formando uma equipe para construir projetos, serviços e oportunidades.',
+      'Buscamos sócios comprometidos com a área administrativa: organização, projetos, parceiros e decisões estratégicas.',
+      'Experiência não é obrigatória. Compromisso, iniciativa e vontade de aprender são essenciais.',
+      '**Interessado?** Fale com a equipe da Docs. Company.',
+    ].join('\n\n'));
 }
 
 const faqTopics = [
@@ -210,7 +210,6 @@ async function publishDevelopmentAnnouncementOnce(readyClient) {
   let savedState = {};
   try {
     savedState = JSON.parse(await fs.readFile(rulesStateFile, 'utf8'));
-    if (savedState.developmentMessageId) return;
   } catch (error) {
     if (error.code !== 'ENOENT') console.warn('Não foi possível ler o estado do aviso de desenvolvimento:', error.message);
   }
@@ -240,10 +239,14 @@ async function publishDevelopmentAnnouncementOnce(readyClient) {
     }
   }
   if (!message) message = await channel.send({ embeds: [developmentEmbed()] });
-  const thread = await message.startThread({ name: 'Docs. Company em Desenvolvimento', autoArchiveDuration: 1440 });
+  let threadId = savedState.developmentThreadId;
+  if (!threadId) {
+    const thread = await message.startThread({ name: 'Docs. Company — Sociedade', autoArchiveDuration: 1440 });
+    threadId = thread.id;
+  }
   await fs.mkdir(path.dirname(rulesStateFile), { recursive: true });
-  await fs.writeFile(rulesStateFile, JSON.stringify({ ...savedState, developmentMessageId: message.id, developmentThreadId: thread.id, developmentVersion, developmentPublishedAt: new Date().toISOString() }, null, 2), 'utf8');
-  console.log('Aviso de desenvolvimento publicado e vinculado a uma thread.');
+  await fs.writeFile(rulesStateFile, JSON.stringify({ ...savedState, developmentMessageId: message.id, developmentThreadId: threadId, developmentVersion, developmentPublishedAt: new Date().toISOString() }, null, 2), 'utf8');
+  console.log('Aviso de desenvolvimento atualizado e vinculado a uma thread.');
 }
 
 async function publishFaqThreadsOnce(readyClient) {
