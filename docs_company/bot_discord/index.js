@@ -23,7 +23,7 @@ const rulesImageUrl = process.env.RULES_IMAGE_URL || 'https://i.imgur.com/raDRCc
 const developmentChannelId = process.env.DEVELOPMENT_CHANNEL_ID || '1550243018122989678';
 const faqChannelId = process.env.FAQ_CHANNEL_ID || '1550243118287159346';
 const rulesStateFile = path.join(__dirname, 'data', 'rules-state.json');
-const rulesVersion = 4;
+const rulesVersion = 5;
 
 if (!token || !apiKey) {
   console.error('Defina DISCORD_TOKEN e BOT_API_KEY antes de iniciar o bot.');
@@ -111,7 +111,6 @@ function rulesEmbed() {
     .setColor(0x5865f2)
     .setTitle('REGRAS DA DOCS. COMPANY')
     .setDescription([
-      'Espaço para colaboração, oportunidades e comunicação profissional.',
       '**1. Respeito e profissionalismo**\nSem ofensas, preconceito, assédio ou ataques pessoais.',
       '**2. Canais corretos**\nUse cada canal conforme sua finalidade.',
       '**3. Sem spam**\nEvite flood, mensagens repetidas e marcações desnecessárias.',
@@ -119,11 +118,7 @@ function rulesEmbed() {
       '**5. Divulgação com autorização**\nNão divulgue projetos, servidores ou redes sociais sem aprovação.',
       '**6. Conteúdo adequado**\nNão envie conteúdo ilegal, sexual ou violento.',
       '**7. Respeite a moderação**\nEm caso de dúvida ou problema, procure a equipe.',
-    ].join('\n'))
-    .addFields({
-      name: 'IMPORTANTE',
-      value: 'Atue com responsabilidade e bom senso. O descumprimento pode resultar em aviso, mute, expulsão ou banimento.',
-    })
+    ].join('\n\n'))
     .setImage(rulesImageUrl);
 }
 
