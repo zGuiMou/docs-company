@@ -182,18 +182,24 @@ function normalizeEntity(value) {
 async function refreshEntityCache() {
   if (entityCache.refreshPromise) return entityCache.refreshPromise;
   entityCache.refreshPromise = Promise.allSettled([
+    request('/api/bot/entidades'),
     request('/api/empresas/ranking'),
     request('/api/bot/contratos'),
-  ]).then(([companiesResult, contractsResult]) => {
+  ]).then(([entitiesResult, companiesResult, contractsResult]) => {
     const entities = new Set();
+    if (entitiesResult.status === 'fulfilled') {
+      (entitiesResult.value.entities || []).forEach((entity) => { if (entity) entities.add(entity); });
+    }
     if (companiesResult.status === 'fulfilled') {
       (companiesResult.value.companies || []).forEach((company) => { if (company.name) entities.add(company.name); });
     }
     if (contractsResult.status === 'fulfilled') {
       (contractsResult.value.contracts || []).forEach((contract) => { if (contract.orgao) entities.add(contract.orgao); });
     }
-    entityCache.values = [...entities].sort((left, right) => left.localeCompare(right, 'pt-BR'));
-    entityCache.refreshedAt = Date.now();
+    if (entities.size) {
+      entityCache.values = [...entities].sort((left, right) => left.localeCompare(right, 'pt-BR'));
+      entityCache.refreshedAt = Date.now();
+    }
   }).catch((error) => console.error('Erro ao atualizar entidades:', error)).finally(() => {
     entityCache.refreshPromise = null;
   });
@@ -280,8 +286,9 @@ function commentMessages(proposals) {
 }
 client.once(Events.ClientReady, async (readyClient) => {
   await readyClient.application.commands.set(commands);
-  void refreshEntityCache();
-  console.log(readyClient.user.tag + ' está online e sincronizado com o site.');
+  await refreshEntityCache();
+  setInterval(() => { void refreshEntityCache(); }, 5 * 60 * 1000).unref();
+  console.log(readyClient.user.tag + ' está online e sincronizado com o site. Entidades carregadas: ' + entityCache.values.length);
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
@@ -367,6 +374,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     if (subcommand === 'listar') {
       const data = await request('/api/bot/contratos');
+      if (!entityCache.values.length) await refreshEntityCache();
       const selectedStatus = interaction.options.getString('status');
       const selectedEntity = interaction.options.getString('entidade');
       const contracts = (data.contracts || []).filter((contract) =>
