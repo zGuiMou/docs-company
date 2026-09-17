@@ -15,6 +15,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:8000';
 const REDIRECT_URI = process.env.REDIRECT_URI || `http://localhost:${PORT}/auth/callback`;
 const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const BOT_API_KEY = process.env.BOT_API_KEY || '';
 const USE_SUPABASE = Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
@@ -69,6 +70,10 @@ function requireAuth(req, res, next) {
   next();
 }
 
+function requireBotApiKey(req, res, next) {
+  if (req.get('X-Bot-Api-Key') !== BOT_API_KEY || !BOT_API_KEY) return res.status(401).json({ error: 'Invalid bot API key' });
+  next();
+}
 function readText(value, maxLength = 500) {
   return typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
 }
@@ -559,6 +564,45 @@ app.post('/api/contratos', requireAuth, (req, res) => {
   }catch(err){ console.error('POST /api/contratos error',err); return res.status(500).json({ error: 'server error' }); }
 });
 
+function requireBotAdmin(req, res, next) {
+  if (String(req.body.actorId) !== String(ADMIN_ID)) return res.status(403).json({ error: 'Administrator permission required' });
+  next();
+}
+function findBotContract(id) { return contracts.find((contract) => contract.id === Number(id)); }
+app.get('/api/bot/contratos', requireBotApiKey, (req, res) => res.json({ contracts: [...contracts].sort((a, b) => b.id - a.id) }));
+app.get('/api/bot/contratos/:id', requireBotApiKey, (req, res) => {
+  const contract = findBotContract(req.params.id);
+  if (!contract) return res.status(404).json({ error: 'Contract not found' });
+  res.json({ contract });
+});
+app.post('/api/bot/contratos', requireBotApiKey, requireBotAdmin, (req, res) => {
+  const title = readText(req.body.title, 160), description = readText(req.body.description, 4000), value = Number(req.body.value);
+  if (!title || !Number.isFinite(value) || value < 0) return res.status(400).json({ error: 'title and valid value required' });
+  const id = contracts.length ? Math.max(...contracts.map((contract) => contract.id)) + 1 : 1000;
+  const contract = { id, code: 'CT-' + id, title, orgao: process.env.BOT_COMPANY_NAME || 'Docs Company', city: '', state: '', category: '', bidNumber: generateBiddingNumber(), status: ['ABERTA','ANDAMENTO','ENCERRADA'].includes(req.body.status) ? req.body.status : 'ABERTA', value, valueToBeAgreed: false, deadline: readText(req.body.deadline, 10) || null, description, contractTitle: title, contractText: description, companyId: null, createdBy: String(req.body.actorId), createdAt: new Date().toISOString(), source: 'discord-bot' };
+  contracts.push(contract); saveData(); res.status(201).json({ ok: true, contract });
+});
+app.patch('/api/bot/contratos/:id', requireBotApiKey, requireBotAdmin, (req, res) => {
+  const contract = findBotContract(req.params.id);
+  if (!contract) return res.status(404).json({ error: 'Contract not found' });
+  if (readText(req.body.title, 160)) { contract.title = readText(req.body.title,160); contract.contractTitle = contract.title; }
+  if (readText(req.body.description,4000)) { contract.description = readText(req.body.description,4000); contract.contractText = contract.description; }
+  if (req.body.value !== undefined && Number.isFinite(Number(req.body.value))) contract.value = Number(req.body.value);
+  if (typeof req.body.deadline === 'string') contract.deadline = readText(req.body.deadline,10) || null;
+  if (['ABERTA','ANDAMENTO','ENCERRADA'].includes(req.body.status)) contract.status = req.body.status;
+  contract.updatedAt = new Date().toISOString(); saveData(); res.json({ ok:true, contract });
+});
+app.patch('/api/bot/contratos/:id/encerrar', requireBotApiKey, requireBotAdmin, (req, res) => {
+  const contract = findBotContract(req.params.id), reason = readText(req.body.reason, 2000);
+  if (!contract) return res.status(404).json({ error:'Contract not found' });
+  if (!reason) return res.status(400).json({ error:'A closing reason is required' });
+  contract.status='ENCERRADA'; contract.closeReason=reason; contract.closedAt=new Date().toISOString(); contract.closedBy=String(req.body.actorId); saveData(); res.json({ok:true,contract});
+});
+app.delete('/api/bot/contratos/:id', requireBotApiKey, requireBotAdmin, (req, res) => {
+  const index=contracts.findIndex((contract)=>contract.id===Number(req.params.id));
+  if(index<0) return res.status(404).json({error:'Contract not found'});
+  const deletedContract=contracts.splice(index,1)[0]; saveData(); res.json({ok:true,deletedContract});
+});
 // List contracts (for admin/any) - optional
 app.get('/api/contratos', (req, res) => {
   return res.json({ contracts, deletedStaticContractIds });
