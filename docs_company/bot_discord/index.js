@@ -15,6 +15,7 @@ const {
 const apiUrl = (process.env.SITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
 const apiKey = process.env.BOT_API_KEY;
 const token = process.env.DISCORD_TOKEN;
+const adminId = process.env.ADMIN_ID || '602953921337491487';
 
 if (!token || !apiKey) {
   console.error('Defina DISCORD_TOKEN e BOT_API_KEY antes de iniciar o bot.');
@@ -81,6 +82,9 @@ const commands = [
         .setDescription('Exclui uma licitação. Administradores apenas.')
         .addIntegerOption((option) => option.setName('id').setDescription('ID da licitação.').setRequired(true)),
     ),
+  new SlashCommandBuilder()
+    .setName('regras')
+    .setDescription('Publica as regras do Canto Nerd neste canal.'),
 ].map((command) => command.toJSON());
 
 async function request(path, options = {}) {
@@ -388,9 +392,37 @@ client.on(Events.InteractionCreate, async (interaction) => {
     }
     return;
   }
-  if (!interaction.isChatInputCommand() || interaction.commandName !== 'licitacao') return;
+  if (!interaction.isChatInputCommand() || !['licitacao', 'regras'].includes(interaction.commandName)) return;
 
   try {
+    if (interaction.commandName === 'regras') {
+      if (String(interaction.user.id) !== String(adminId)) {
+        await interaction.reply({ content: 'Apenas a administração pode publicar as regras.', ephemeral: true });
+        return;
+      }
+      const rulesEmbed = new EmbedBuilder()
+        .setColor(0x5865f2)
+        .setTitle('📜 REGRAS DO CANTO NERD')
+        .setDescription([
+          'Seja bem-vindo ao Canto Nerd! Para manter o servidor organizado e divertido para todo mundo, é só seguir o básico:',
+          '',
+          '**1. Respeite a galera**\nSem ofensas, preconceito, assédio ou ataques pessoais.',
+          '**2. Nada de spam**\nEvite flood, mensagens repetidas, marcações desnecessárias e divulgação excessiva.',
+          '**3. Use os canais corretamente**\nCada canal tem sua função. Ajude a manter tudo organizado.',
+          '**4. Nada de conteúdo impróprio**\nNão envie conteúdo sexual, ilegal, extremamente violento ou inadequado para a comunidade.',
+          '**5. Respeite as opiniões**\nPode discordar e debater, mas sem transformar a conversa em briga.',
+          '**6. Sem divulgação sem permissão**\nNão divulgue servidores, canais, redes sociais ou outros projetos sem autorização.',
+          '**7. Proteja sua privacidade**\nNão compartilhe informações pessoais suas ou de outras pessoas.',
+          '**8. Respeite a equipe**\nA moderação está aqui para manter o servidor funcionando bem. Se tiver algum problema, procure a equipe.',
+        ].join('\n\n'))
+        .addFields({
+          name: '━━━━━━━━━━━━━━━━━━',
+          value: '**O MAIS IMPORTANTE**\nRespeite os outros e tenha bom senso. O descumprimento das regras pode resultar em aviso, mute, expulsão ou banimento, dependendo da situação.\n\n**Bom divertimento e seja bem-vindo ao Canto Nerd!**',
+        });
+      await interaction.reply({ embeds: [rulesEmbed] });
+      return;
+    }
+
     const subcommand = interaction.options.getSubcommand();
 
     if (subcommand === 'listar') {
