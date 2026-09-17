@@ -21,6 +21,7 @@ const token = process.env.DISCORD_TOKEN;
 const rulesChannelId = process.env.RULES_CHANNEL_ID || '1549529444987834509';
 const rulesImageUrl = process.env.RULES_IMAGE_URL || 'https://i.imgur.com/raDRCcV.png';
 const developmentChannelId = process.env.DEVELOPMENT_CHANNEL_ID || '1550243018122989678';
+const developmentVersion = 2;
 const faqChannelId = process.env.FAQ_CHANNEL_ID || '1550243118287159346';
 const rulesStateFile = path.join(__dirname, 'data', 'rules-state.json');
 const rulesVersion = 5;
@@ -125,21 +126,16 @@ function rulesEmbed() {
 function developmentEmbed() {
   return new EmbedBuilder()
     .setColor(0xf2c56d)
-    .setTitle('🚧 DOCS. COMPANY EM DESENVOLVIMENTO')
+    .setTitle('DOCS. COMPANY EM DESENVOLVIMENTO')
     .setDescription([
-      'A Docs. Company está em fase de construção e estamos formando uma equipe comprometida para desenvolver nossos projetos, serviços e oportunidades.',
+      'A Docs. Company está em desenvolvimento.',
       '',
-      '**Estamos procurando sócios que queiram se dedicar de verdade à equipe.**',
+      '**Buscamos sócios comprometidos com a equipe.**',
       '',
-      'A principal qualidade que buscamos é a vontade de atuar no ramo administrativo: organizar processos, acompanhar projetos, atender parceiros, ajudar na tomada de decisões e fazer a empresa crescer.',
+      'A principal qualidade é a vontade de atuar na área administrativa: organizar processos, acompanhar projetos e ajudar a empresa a crescer.',
       '',
-      'Não é necessário ter experiência em tudo. Compromisso, responsabilidade, iniciativa e interesse em aprender fazem toda a diferença.',
-    ].join('\n'))
-    .addFields({
-      name: '📩 Quer fazer parte?',
-      value: 'Procure a equipe da Docs. Company para conversar sobre as oportunidades de sociedade e atuação administrativa.',
-    })
-    .setFooter({ text: 'Construindo a Docs. Company juntos.' });
+      '**Quer fazer parte?**\nProcure a equipe da Docs. Company para conversar sobre as oportunidades disponíveis.',
+    ].join('\n'));
 }
 
 const faqTopics = [
@@ -223,13 +219,34 @@ async function publishDevelopmentAnnouncementOnce(readyClient) {
   }
 
   const channel = await readyClient.channels.fetch(developmentChannelId);
-  if (!channel || !channel.isTextBased() || typeof channel.send !== 'function') {
-    throw new Error('DEVELOPMENT_CHANNEL_ID não aponta para um canal de texto.');
+  if (!channel) throw new Error('DEVELOPMENT_CHANNEL_ID não aponta para um canal válido.');
+  if (savedState.developmentThreadId && savedState.developmentVersion === developmentVersion) return;
+
+  if (channel.type === ChannelType.GuildForum) {
+    const thread = await channel.threads.create({ name: 'Docs. Company em Desenvolvimento', message: { embeds: [developmentEmbed()] } });
+    await fs.mkdir(path.dirname(rulesStateFile), { recursive: true });
+    await fs.writeFile(rulesStateFile, JSON.stringify({ ...savedState, developmentThreadId: thread.id, developmentVersion, developmentPublishedAt: new Date().toISOString() }, null, 2), 'utf8');
+    console.log('Aviso de desenvolvimento publicado em tópico de fórum.');
+    return;
   }
-  const message = await channel.send({ embeds: [developmentEmbed()] });
+  if (!channel.isTextBased() || typeof channel.send !== 'function') {
+    throw new Error('DEVELOPMENT_CHANNEL_ID precisa ser um canal de fórum ou texto com suporte a threads.');
+  }
+
+  let message;
+  if (savedState.developmentMessageId) {
+    try {
+      message = await channel.messages.fetch(savedState.developmentMessageId);
+      await message.edit({ embeds: [developmentEmbed()] });
+    } catch (error) {
+      console.warn('Não foi possível reutilizar o aviso de desenvolvimento:', error.message);
+    }
+  }
+  if (!message) message = await channel.send({ embeds: [developmentEmbed()] });
+  const thread = await message.startThread({ name: 'Docs. Company em Desenvolvimento', autoArchiveDuration: 1440 });
   await fs.mkdir(path.dirname(rulesStateFile), { recursive: true });
-  await fs.writeFile(rulesStateFile, JSON.stringify({ ...savedState, developmentMessageId: message.id, developmentPublishedAt: new Date().toISOString() }, null, 2), 'utf8');
-  console.log('Aviso de desenvolvimento publicado uma única vez no canal configurado.');
+  await fs.writeFile(rulesStateFile, JSON.stringify({ ...savedState, developmentMessageId: message.id, developmentThreadId: thread.id, developmentVersion, developmentPublishedAt: new Date().toISOString() }, null, 2), 'utf8');
+  console.log('Aviso de desenvolvimento publicado e vinculado a uma thread.');
 }
 
 async function publishFaqThreadsOnce(readyClient) {
