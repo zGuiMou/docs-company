@@ -23,7 +23,7 @@ const rulesImageUrl = process.env.RULES_IMAGE_URL || 'https://i.imgur.com/raDRCc
 const developmentChannelId = process.env.DEVELOPMENT_CHANNEL_ID || '1550243018122989678';
 const faqChannelId = process.env.FAQ_CHANNEL_ID || '1550243118287159346';
 const rulesStateFile = path.join(__dirname, 'data', 'rules-state.json');
-const rulesVersion = 3;
+const rulesVersion = 4;
 
 if (!token || !apiKey) {
   console.error('Defina DISCORD_TOKEN e BOT_API_KEY antes de iniciar o bot.');
@@ -109,22 +109,20 @@ async function request(path, options = {}) {
 function rulesEmbed() {
   return new EmbedBuilder()
     .setColor(0x5865f2)
-    .setTitle('📜 REGRAS DA DOCS. COMPANY')
+    .setTitle('REGRAS DA DOCS. COMPANY')
     .setDescription([
-      'Bem-vindo à comunidade da Docs. Company! Este é um espaço para colaboração, oportunidades, parcerias e comunicação profissional. Para manter tudo organizado, siga estas diretrizes:',
-      '',
-      '**1. Mantenha o respeito e o profissionalismo**\nNão são tolerados ofensas, preconceito, assédio ou ataques pessoais.',
-      '**2. Use os canais corretamente**\nCada canal tem uma finalidade. Organize suas mensagens para facilitar a comunicação de todos.',
-      '**3. Evite spam e marcações desnecessárias**\nNão envie flood, mensagens repetidas ou menções em excesso.',
-      '**4. Preserve informações e privacidade**\nNão compartilhe dados pessoais, informações internas ou conteúdos confidenciais sem autorização.',
-      '**5. Divulgações precisam de autorização**\nNão divulgue servidores, produtos, redes sociais ou projetos externos sem aprovação da equipe.',
-      '**6. Mantenha o conteúdo adequado**\nNão envie conteúdo ilegal, sexual, violento ou incompatível com o ambiente profissional.',
-      '**7. Colabore com responsabilidade**\nDebates e ideias são bem-vindos quando feitos com bom senso, clareza e respeito às opiniões diferentes.',
-      '**8. Respeite a equipe e as decisões da moderação**\nEm caso de dúvidas, conflitos ou problemas, procure a equipe da Docs. Company.',
-    ].join('\n\n'))
+      'Espaço para colaboração, oportunidades e comunicação profissional.',
+      '**1. Respeito e profissionalismo**\nSem ofensas, preconceito, assédio ou ataques pessoais.',
+      '**2. Canais corretos**\nUse cada canal conforme sua finalidade.',
+      '**3. Sem spam**\nEvite flood, mensagens repetidas e marcações desnecessárias.',
+      '**4. Privacidade**\nNão compartilhe dados pessoais ou informações internas sem autorização.',
+      '**5. Divulgação com autorização**\nNão divulgue projetos, servidores ou redes sociais sem aprovação.',
+      '**6. Conteúdo adequado**\nNão envie conteúdo ilegal, sexual ou violento.',
+      '**7. Respeite a moderação**\nEm caso de dúvida ou problema, procure a equipe.',
+    ].join('\n'))
     .addFields({
-      name: '━━━━━━━━━━━━━━━━━━',
-      value: '**O MAIS IMPORTANTE**\nAtue com respeito, responsabilidade e bom senso. O descumprimento das regras pode resultar em aviso, mute, expulsão ou banimento, dependendo da situação.\n\n**Obrigado por fazer parte da Docs. Company!**',
+      name: 'IMPORTANTE',
+      value: 'Atue com responsabilidade e bom senso. O descumprimento pode resultar em aviso, mute, expulsão ou banimento.',
     })
     .setImage(rulesImageUrl);
 }
