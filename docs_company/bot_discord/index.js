@@ -21,7 +21,7 @@ const token = process.env.DISCORD_TOKEN;
 const rulesChannelId = process.env.RULES_CHANNEL_ID || '1549529444987834509';
 const rulesImageUrl = process.env.RULES_IMAGE_URL || 'https://i.imgur.com/raDRCcV.png';
 const developmentChannelId = process.env.DEVELOPMENT_CHANNEL_ID || '1550243018122989678';
-const developmentVersion = 2;
+const developmentVersion = 3;
 const faqChannelId = process.env.FAQ_CHANNEL_ID || '1550243118287159346';
 const rulesStateFile = path.join(__dirname, 'data', 'rules-state.json');
 const rulesVersion = 5;
@@ -129,13 +129,10 @@ function developmentEmbed() {
     .setTitle('DOCS. COMPANY EM DESENVOLVIMENTO')
     .setDescription([
       'A Docs. Company está em desenvolvimento.',
-      '',
-      '**Buscamos sócios comprometidos com a equipe.**',
-      '',
-      'A principal qualidade é a vontade de atuar na área administrativa: organizar processos, acompanhar projetos e ajudar a empresa a crescer.',
-      '',
+      '**Buscamos sócios comprometidos com a equipe.**\nA prioridade é ter vontade de atuar na área administrativa, organizar processos, acompanhar projetos e ajudar a empresa a crescer.',
       '**Quer fazer parte?**\nProcure a equipe da Docs. Company para conversar sobre as oportunidades disponíveis.',
-    ].join('\n'));
+    ].join('\n\n'))
+    .setFooter({ text: 'Construindo a Docs. Company juntos.' });
 }
 
 const faqTopics = [
