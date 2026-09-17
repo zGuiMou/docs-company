@@ -23,6 +23,7 @@ if (!token || !apiKey) {
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 const listingFilters = new Map();
+const entityCache = { values: [], refreshedAt: 0, refreshPromise: null };
 
 const statusChoices = [
   { name: 'Aberta', value: 'ABERTA' },
@@ -178,6 +179,27 @@ function normalizeEntity(value) {
   return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
 }
 
+async function refreshEntityCache() {
+  if (entityCache.refreshPromise) return entityCache.refreshPromise;
+  entityCache.refreshPromise = Promise.allSettled([
+    request('/api/empresas/ranking'),
+    request('/api/bot/contratos'),
+  ]).then(([companiesResult, contractsResult]) => {
+    const entities = new Set();
+    if (companiesResult.status === 'fulfilled') {
+      (companiesResult.value.companies || []).forEach((company) => { if (company.name) entities.add(company.name); });
+    }
+    if (contractsResult.status === 'fulfilled') {
+      (contractsResult.value.contracts || []).forEach((contract) => { if (contract.orgao) entities.add(contract.orgao); });
+    }
+    entityCache.values = [...entities].sort((left, right) => left.localeCompare(right, 'pt-BR'));
+    entityCache.refreshedAt = Date.now();
+  }).catch((error) => console.error('Erro ao atualizar entidades:', error)).finally(() => {
+    entityCache.refreshPromise = null;
+  });
+  return entityCache.refreshPromise;
+}
+
 function pageButtons(page, total, contract, filterToken = '') {
   return [new ActionRowBuilder().addComponents(
     new ButtonBuilder().setCustomId('lic-prev:' + page + ':' + filterToken).setLabel('◀ Anterior').setStyle(ButtonStyle.Secondary).setDisabled(page === 0),
@@ -258,6 +280,7 @@ function commentMessages(proposals) {
 }
 client.once(Events.ClientReady, async (readyClient) => {
   await readyClient.application.commands.set(commands);
+  void refreshEntityCache();
   console.log(readyClient.user.tag + ' está online e sincronizado com o site.');
 });
 
@@ -324,21 +347,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
     try {
       const focused = interaction.options.getFocused();
       if (focused.name !== 'entidade') return;
-      const [companiesResult, contractsResult] = await Promise.allSettled([
-        request('/api/empresas/ranking'),
-        request('/api/bot/contratos'),
-      ]);
-      const entities = new Set();
-      if (companiesResult.status === 'fulfilled') {
-        (companiesResult.value.companies || []).forEach((company) => { if (company.name) entities.add(company.name); });
-      }
-      if (contractsResult.status === 'fulfilled') {
-        (contractsResult.value.contracts || []).forEach((contract) => { if (contract.orgao) entities.add(contract.orgao); });
-      }
+      if (Date.now() - entityCache.refreshedAt > 5 * 60 * 1000) void refreshEntityCache();
       const query = normalizeEntity(focused.value);
-      const choices = [...entities]
+      const choices = entityCache.values
         .filter((entity) => !query || normalizeEntity(entity).includes(query))
-        .sort((left, right) => left.localeCompare(right, 'pt-BR'))
         .slice(0, 25)
         .map((entity) => ({ name: entity.slice(0, 100), value: entity.slice(0, 100) }));
       await interaction.respond(choices);
