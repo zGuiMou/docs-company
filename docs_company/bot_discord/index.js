@@ -30,6 +30,11 @@ const statusChoices = [
   { name: 'Em andamento', value: 'ANDAMENTO' },
   { name: 'Encerrada', value: 'ENCERRADA' },
 ];
+const entityTypeChoices = [
+  { name: 'Big Techs', value: 'BIG_TECH' },
+  { name: 'Prefeituras', value: 'PREFEITURA' },
+  { name: 'Empresas', value: 'EMPRESA' },
+];
 
 const commands = [
   new SlashCommandBuilder()
@@ -47,6 +52,7 @@ const commands = [
     )
     .addSubcommand((subcommand) => subcommand.setName('listar').setDescription('Lista as licitações do site.')
       .addStringOption((option) => option.setName('status').setDescription('Filtrar por status.').addChoices(...statusChoices))
+      .addStringOption((option) => option.setName('categoria').setDescription('Tipo de entidade.').addChoices(...entityTypeChoices))
       .addStringOption((option) => option.setName('entidade').setDescription('Filtrar por entidade.').setAutocomplete(true)))
     .addSubcommand((subcommand) =>
       subcommand.setName('ver').setDescription('Mostra uma licitação.').addStringOption((option) => option.setName('id').setDescription('Número, ex.: 36809/2026.').setRequired(true)),
@@ -169,14 +175,19 @@ async function pageEmbedWithComments(contract, page, total) {
   const proposalData = await request('/api/bot/contratos/' + encodeURIComponent(contract.id) + '/propostas');
   return pageEmbed(contract, page, total, proposalData.proposals || []);
 }
-function createListingFilter(entity, status) {
+function createListingFilter(entity, status, category) {
   const token = Math.random().toString(36).slice(2, 12);
-  listingFilters.set(token, { entity, status });
+  listingFilters.set(token, { entity, status, category });
   return token;
 }
 
 function normalizeEntity(value) {
   return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+}
+
+function entityTypeForName(name) {
+  const entity = entityCache.values.find((item) => normalizeEntity(item.name) === normalizeEntity(name));
+  return entity ? entity.type : 'EMPRESA';
 }
 
 async function refreshEntityCache() {
@@ -186,18 +197,26 @@ async function refreshEntityCache() {
     request('/api/empresas/ranking'),
     request('/api/bot/contratos'),
   ]).then(([entitiesResult, companiesResult, contractsResult]) => {
-    const entities = new Set();
+    const entities = new Map();
     if (entitiesResult.status === 'fulfilled') {
-      (entitiesResult.value.entities || []).forEach((entity) => { if (entity) entities.add(entity); });
+      (entitiesResult.value.entities || []).forEach((entity) => {
+        if (entity) entities.set(normalizeEntity(entity), { name: entity, type: 'EMPRESA' });
+      });
     }
     if (companiesResult.status === 'fulfilled') {
-      (companiesResult.value.companies || []).forEach((company) => { if (company.name) entities.add(company.name); });
+      (companiesResult.value.companies || []).forEach((company) => {
+        if (company.name) entities.set(normalizeEntity(company.name), { name: company.name, type: company.entityType || 'EMPRESA' });
+      });
     }
     if (contractsResult.status === 'fulfilled') {
-      (contractsResult.value.contracts || []).forEach((contract) => { if (contract.orgao) entities.add(contract.orgao); });
+      (contractsResult.value.contracts || []).forEach((contract) => {
+        if (contract.orgao && !entities.has(normalizeEntity(contract.orgao))) {
+          entities.set(normalizeEntity(contract.orgao), { name: contract.orgao, type: 'EMPRESA' });
+        }
+      });
     }
     if (entities.size) {
-      entityCache.values = [...entities].sort((left, right) => left.localeCompare(right, 'pt-BR'));
+      entityCache.values = [...entities.values()].sort((left, right) => left.name.localeCompare(right.name, 'pt-BR'));
       entityCache.refreshedAt = Date.now();
     }
   }).catch((error) => console.error('Erro ao atualizar entidades:', error)).finally(() => {
@@ -305,6 +324,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const filter = listingFilters.get(match[3]) || {};
     const contracts = (data.contracts || []).filter((contract) =>
       (!filter.status || contract.status === filter.status)
+      && (!filter.category || entityTypeForName(contract.orgao) === filter.category)
       && (!filter.entity || normalizeEntity(contract.orgao) === normalizeEntity(filter.entity)),
     );
     const page = Math.max(0, Math.min(contracts.length - 1, Number(match[2]) + (match[1] === 'next' ? 1 : -1)));
@@ -355,11 +375,12 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const focused = interaction.options.getFocused();
       if (focused.name !== 'entidade') return;
       if (Date.now() - entityCache.refreshedAt > 5 * 60 * 1000) void refreshEntityCache();
+      const selectedCategory = interaction.options.getString('categoria');
       const query = normalizeEntity(focused.value);
       const choices = entityCache.values
-        .filter((entity) => !query || normalizeEntity(entity).includes(query))
+        .filter((entity) => (!selectedCategory || entity.type === selectedCategory) && (!query || normalizeEntity(entity.name).includes(query)))
         .slice(0, 25)
-        .map((entity) => ({ name: entity.slice(0, 100), value: entity.slice(0, 100) }));
+        .map((entity) => ({ name: entity.name.slice(0, 100), value: entity.name.slice(0, 100) }));
       await interaction.respond(choices);
     } catch (error) {
       console.error('Erro ao carregar entidades:', error);
@@ -376,15 +397,18 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const data = await request('/api/bot/contratos');
       if (!entityCache.values.length) await refreshEntityCache();
       const selectedStatus = interaction.options.getString('status');
+      const selectedCategory = interaction.options.getString('categoria');
       const selectedEntity = interaction.options.getString('entidade');
       const contracts = (data.contracts || []).filter((contract) =>
         (!selectedStatus || contract.status === selectedStatus)
+        && (!selectedCategory || entityTypeForName(contract.orgao) === selectedCategory)
         && (!selectedEntity || normalizeEntity(contract.orgao) === normalizeEntity(selectedEntity)),
       );
       if (!contracts.length) { await interaction.reply({ content: 'Nenhuma licitação cadastrada.' }); return; }
       const embed = await pageEmbedWithComments(contracts[0], 0, contracts.length);
-      const filterToken = createListingFilter(selectedEntity, selectedStatus);
-      const heading = selectedEntity ? `📋 **Licitações de ${selectedEntity}**` : '📋 **Licitações da Docs Company**';
+      const filterToken = createListingFilter(selectedEntity, selectedStatus, selectedCategory);
+      const categoryName = entityTypeChoices.find((choice) => choice.value === selectedCategory)?.name;
+      const heading = selectedEntity ? `📋 **Licitações de ${selectedEntity}**` : categoryName ? `📋 **Licitações — ${categoryName}**` : '📋 **Licitações da Docs Company**';
       await interaction.reply({ content: heading, embeds: [embed], components: pageButtons(0, contracts.length, contracts[0], filterToken) });
       return;
     }
