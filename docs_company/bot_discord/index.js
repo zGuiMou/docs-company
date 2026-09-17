@@ -324,10 +324,21 @@ client.on(Events.InteractionCreate, async (interaction) => {
     try {
       const focused = interaction.options.getFocused();
       if (focused.name !== 'entidade') return;
-      const data = await request('/api/bot/entidades');
+      const [companiesResult, contractsResult] = await Promise.allSettled([
+        request('/api/empresas/ranking'),
+        request('/api/bot/contratos'),
+      ]);
+      const entities = new Set();
+      if (companiesResult.status === 'fulfilled') {
+        (companiesResult.value.companies || []).forEach((company) => { if (company.name) entities.add(company.name); });
+      }
+      if (contractsResult.status === 'fulfilled') {
+        (contractsResult.value.contracts || []).forEach((contract) => { if (contract.orgao) entities.add(contract.orgao); });
+      }
       const query = normalizeEntity(focused.value);
-      const choices = (data.entities || [])
+      const choices = [...entities]
         .filter((entity) => !query || normalizeEntity(entity).includes(query))
+        .sort((left, right) => left.localeCompare(right, 'pt-BR'))
         .slice(0, 25)
         .map((entity) => ({ name: entity.slice(0, 100), value: entity.slice(0, 100) }));
       await interaction.respond(choices);
