@@ -162,6 +162,7 @@ const faqTopics = [
   },
   {
     key: 'licitacoes',
+    version: 2,
     title: 'Como funciona o sistema de licitações?',
     text: 'As licitações disponíveis são publicadas no sistema da Docs. Company com informações como entidade responsável, descrição, prazo, valor e status. Ao encontrar uma oportunidade, o interessado pode analisar os detalhes e enviar uma proposta.\n\nA proposta pode aceitar os termos apresentados ou sugerir novo valor e prazo. Também é possível incluir uma justificativa, que ajuda o contratante a entender a proposta e avaliar a participação. Depois, o contratante acompanha e decide o andamento da solicitação.',
   },
@@ -241,17 +242,21 @@ async function publishFaqThreadsOnce(readyClient) {
   const faqThreads = savedState.faqThreads || {};
 
   for (const topic of faqTopics) {
-    if (faqThreads[topic.key]) continue;
+    const currentVersion = topic.version || 1;
+    const savedThread = faqThreads[topic.key];
+    const savedVersion = typeof savedThread === 'object' ? savedThread.version : 1;
+    if (savedThread && savedVersion === currentVersion) continue;
     let thread;
     if (channel.type === ChannelType.GuildForum) {
       thread = await channel.threads.create({ name: topic.title, message: { embeds: [faqEmbed(topic)] } });
     } else if (channel.isTextBased() && typeof channel.send === 'function') {
-      const starterMessage = await channel.send({ embeds: [faqEmbed(topic)] });
+      const starterMessage = await channel.send({ content: `🧵 **${topic.title}**` });
       thread = await starterMessage.startThread({ name: topic.title, autoArchiveDuration: 1440 });
+      await thread.send({ embeds: [faqEmbed(topic)] });
     } else {
       throw new Error('FAQ_CHANNEL_ID precisa ser um canal de fórum ou texto com suporte a threads.');
     }
-    faqThreads[topic.key] = thread.id;
+    faqThreads[topic.key] = { id: thread.id, version: currentVersion };
     await fs.mkdir(path.dirname(rulesStateFile), { recursive: true });
     await fs.writeFile(rulesStateFile, JSON.stringify({ ...savedState, faqThreads }, null, 2), 'utf8');
   }
