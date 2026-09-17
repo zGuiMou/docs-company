@@ -120,7 +120,20 @@ function listingEmbed(contract, position) {
     )
     .setFooter({ text: 'Licitação ' + (position + 1) + ' de ' + position.total + ' • Dados sincronizados com o site.' });
 }
-function pageEmbed(contract, page, total) {
+function commentsForEmbed(proposals) {
+  const comments = proposals
+    .filter((proposal) => proposal.message && proposal.message.trim())
+    .map((proposal) => {
+      const author = proposal.user && proposal.user.username ? proposal.user.username : 'Usuário';
+      const message = proposal.message.trim().replace(/\s+/g, ' ').replace(/@/g, '@\u200b');
+      return `**${author}:** ${message}`;
+    });
+  if (!comments.length) return 'Sem comentários.';
+  const text = comments.join('\n');
+  return text.length > 1_020 ? `${text.slice(0, 1_017)}…` : text;
+}
+
+function pageEmbed(contract, page, total, proposals = []) {
   const embed = new EmbedBuilder()
     .setColor(0xFEE75C)
     .setAuthor({ name: contract.orgao || 'Docs Company' })
@@ -130,10 +143,15 @@ function pageEmbed(contract, page, total) {
       { name: 'Status', value: contract.status || 'ABERTA', inline: true },
       { name: 'Valor', value: formatMoney(contract.value, contract.valueToBeAgreed), inline: true },
       { name: 'Prazo', value: contract.deadline || 'Não informado', inline: true },
+      { name: 'Comentários', value: commentsForEmbed(proposals) },
     )
     .setFooter({ text: 'Página ' + (page + 1) + ' de ' + total + ' • Dados sincronizados com o site.' });
   if (contract.companyLogo) embed.setThumbnail(contract.companyLogo);
   return embed;
+}
+async function pageEmbedWithComments(contract, page, total) {
+  const proposalData = await request('/api/bot/contratos/' + encodeURIComponent(contract.id) + '/propostas');
+  return pageEmbed(contract, page, total, proposalData.proposals || []);
 }
 function pageButtons(page, total) {
   return [new ActionRowBuilder().addComponents(
@@ -226,7 +244,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
     const data = await request('/api/bot/contratos');
     const contracts = data.contracts || [];
     const page = Math.max(0, Math.min(contracts.length - 1, Number(match[2]) + (match[1] === 'next' ? 1 : -1)));
-    await interaction.editReply({ embeds: [pageEmbed(contracts[page], page, contracts.length)], components: pageButtons(page, contracts.length) });
+    const embed = await pageEmbedWithComments(contracts[page], page, contracts.length);
+    await interaction.editReply({ embeds: [embed], components: pageButtons(page, contracts.length) });
     return;
   }
   if (interaction.isModalSubmit() && interaction.customId.startsWith('lic-proposal-modal:')) {
@@ -276,7 +295,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const selectedStatus = interaction.options.getString('status');
       const contracts = (data.contracts || []).filter((contract) => !selectedStatus || contract.status === selectedStatus);
       if (!contracts.length) { await interaction.reply({ content: 'Nenhuma licitação cadastrada.' }); return; }
-      await interaction.reply({ content: '📋 **Licitações da Docs Company**', embeds: [pageEmbed(contracts[0], 0, contracts.length)], components: pageButtons(0, contracts.length) });
+      const embed = await pageEmbedWithComments(contracts[0], 0, contracts.length);
+      await interaction.reply({ content: '📋 **Licitações da Docs Company**', embeds: [embed], components: pageButtons(0, contracts.length) });
       return;
     }
     if (subcommand === 'ver') {

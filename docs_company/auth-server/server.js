@@ -730,8 +730,9 @@ app.delete('/api/contratos/:id', requireAuth, (req, res) => {
   return res.json({ ok: true, deletedContract: { id: contract.id, title: contract.title } });
 });
 
-// Get proposals for a contract
-app.get('/api/contratos/:id/propostas', requireAuth, (req, res) => {
+// Proposal comments are public in the Discord channel, so the licitation page
+// also exposes this read-only history without requiring a website session.
+app.get('/api/contratos/:id/propostas', (req, res) => {
   try {
     const id = Number(req.params.id);
     const list = proposals.filter(p => p.contractId === id).sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
