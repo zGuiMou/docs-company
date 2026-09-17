@@ -2,6 +2,7 @@ const {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  ChannelType,
   Client,
   EmbedBuilder,
   Events,
@@ -20,6 +21,7 @@ const token = process.env.DISCORD_TOKEN;
 const rulesChannelId = process.env.RULES_CHANNEL_ID || '1549529444987834509';
 const rulesImageUrl = process.env.RULES_IMAGE_URL || 'https://i.imgur.com/raDRCcV.png';
 const developmentChannelId = process.env.DEVELOPMENT_CHANNEL_ID || '1550243018122989678';
+const faqChannelId = process.env.FAQ_CHANNEL_ID || '1550243118287159346';
 const rulesStateFile = path.join(__dirname, 'data', 'rules-state.json');
 const rulesVersion = 2;
 
@@ -147,6 +149,37 @@ function developmentEmbed() {
     .setFooter({ text: 'Construindo a Docs. Company juntos.' });
 }
 
+const faqTopics = [
+  {
+    key: 'servicos',
+    title: 'Quais serviços a Docs. Company oferece?',
+    text: 'A Docs. Company atua no suporte administrativo e documental para empresas, parceiros e órgãos públicos. Nossos serviços podem envolver organização de documentos, orientação de processos, elaboração e acompanhamento de contratos, apoio em regularizações, gestão de demandas administrativas e intermediação de oportunidades.\n\nCada atendimento é analisado conforme a necessidade do cliente ou parceiro, buscando soluções claras, organizadas e adequadas ao projeto.',
+  },
+  {
+    key: 'documentacao',
+    title: 'Vocês cuidam da documentação de empresas?',
+    text: 'Sim. A Docs. Company pode auxiliar empresas na organização, revisão e acompanhamento de documentos necessários para suas atividades. Isso inclui documentação corporativa, registros, certidões, contratos, formulários e processos administrativos.\n\nO objetivo é reduzir burocracias, manter as informações organizadas e ajudar a empresa a estar preparada para novas oportunidades, parcerias e demandas.',
+  },
+  {
+    key: 'licitacoes',
+    title: 'Como funciona o sistema de licitações?',
+    text: 'As licitações disponíveis são publicadas no sistema da Docs. Company com informações como entidade responsável, descrição, prazo, valor e status. Ao encontrar uma oportunidade, o interessado pode analisar os detalhes e enviar uma proposta.\n\nA proposta pode aceitar os termos apresentados ou sugerir novo valor e prazo. Também é possível incluir uma justificativa, que ajuda o contratante a entender a proposta e avaliar a participação. Depois, o contratante acompanha e decide o andamento da solicitação.',
+  },
+  {
+    key: 'socio',
+    title: 'Como posso me tornar um sócio?',
+    text: 'A Docs. Company busca pessoas comprometidas que desejem contribuir ativamente com o crescimento da empresa. O principal requisito é ter interesse em atuar no ramo administrativo, colaborar com a organização, acompanhar projetos, atender parceiros e participar das decisões.\n\nExperiência é bem-vinda, mas responsabilidade, iniciativa, comunicação e disposição para aprender são essenciais. Para demonstrar interesse, procure a equipe da Docs. Company e converse sobre as oportunidades disponíveis.',
+  },
+];
+
+function faqEmbed(topic) {
+  return new EmbedBuilder()
+    .setColor(0x5aa6ff)
+    .setTitle(topic.title)
+    .setDescription(topic.text)
+    .setFooter({ text: 'Docs. Company • Central de dúvidas' });
+}
+
 async function publishRulesOnce(readyClient) {
   let savedState = {};
   try {
@@ -194,6 +227,35 @@ async function publishDevelopmentAnnouncementOnce(readyClient) {
   await fs.mkdir(path.dirname(rulesStateFile), { recursive: true });
   await fs.writeFile(rulesStateFile, JSON.stringify({ ...savedState, developmentMessageId: message.id, developmentPublishedAt: new Date().toISOString() }, null, 2), 'utf8');
   console.log('Aviso de desenvolvimento publicado uma única vez no canal configurado.');
+}
+
+async function publishFaqThreadsOnce(readyClient) {
+  let savedState = {};
+  try {
+    savedState = JSON.parse(await fs.readFile(rulesStateFile, 'utf8'));
+  } catch (error) {
+    if (error.code !== 'ENOENT') console.warn('Não foi possível ler o estado dos tópicos:', error.message);
+  }
+  const channel = await readyClient.channels.fetch(faqChannelId);
+  if (!channel) throw new Error('FAQ_CHANNEL_ID não aponta para um canal válido.');
+  const faqThreads = savedState.faqThreads || {};
+
+  for (const topic of faqTopics) {
+    if (faqThreads[topic.key]) continue;
+    let thread;
+    if (channel.type === ChannelType.GuildForum) {
+      thread = await channel.threads.create({ name: topic.title, message: { embeds: [faqEmbed(topic)] } });
+    } else if (channel.isTextBased() && typeof channel.send === 'function') {
+      const starterMessage = await channel.send({ embeds: [faqEmbed(topic)] });
+      thread = await starterMessage.startThread({ name: topic.title, autoArchiveDuration: 1440 });
+    } else {
+      throw new Error('FAQ_CHANNEL_ID precisa ser um canal de fórum ou texto com suporte a threads.');
+    }
+    faqThreads[topic.key] = thread.id;
+    await fs.mkdir(path.dirname(rulesStateFile), { recursive: true });
+    await fs.writeFile(rulesStateFile, JSON.stringify({ ...savedState, faqThreads }, null, 2), 'utf8');
+  }
+  console.log('Tópicos da central de dúvidas verificados.');
 }
 
 function formatMoney(value, valueToBeAgreed) {
@@ -408,6 +470,7 @@ client.once(Events.ClientReady, async (readyClient) => {
   setInterval(() => { void refreshEntityCache(); }, 5 * 60 * 1000).unref();
   await publishRulesOnce(readyClient).catch((error) => console.error('Não foi possível publicar as regras:', error.message));
   await publishDevelopmentAnnouncementOnce(readyClient).catch((error) => console.error('Não foi possível publicar o aviso de desenvolvimento:', error.message));
+  await publishFaqThreadsOnce(readyClient).catch((error) => console.error('Não foi possível criar os tópicos de dúvidas:', error.message));
   console.log(readyClient.user.tag + ' está online e sincronizado com o site. Entidades carregadas: ' + entityCache.values.length);
 });
 
