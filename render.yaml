@@ -2,6 +2,7 @@ services:
   - type: web
     name: docs-company
     runtime: node
+    plan: free
     rootDir: docs_company/auth-server
     buildCommand: npm ci
     startCommand: npm start
