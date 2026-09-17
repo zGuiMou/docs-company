@@ -20,6 +20,7 @@ const token = process.env.DISCORD_TOKEN;
 const rulesChannelId = process.env.RULES_CHANNEL_ID || '1549529444987834509';
 const rulesImageUrl = process.env.RULES_IMAGE_URL || 'https://i.imgur.com/raDRCcV.png';
 const rulesStateFile = path.join(__dirname, 'data', 'rules-state.json');
+const rulesVersion = 2;
 
 if (!token || !apiKey) {
   console.error('Defina DISCORD_TOKEN e BOT_API_KEY antes de iniciar o bot.');
@@ -105,30 +106,30 @@ async function request(path, options = {}) {
 function rulesEmbed() {
   return new EmbedBuilder()
     .setColor(0x5865f2)
-    .setTitle('📜 REGRAS DO CANTO NERD')
+    .setTitle('📜 REGRAS DA DOCS. COMPANY')
     .setDescription([
-      'Seja bem-vindo ao Canto Nerd! Para manter o servidor organizado e divertido para todo mundo, é só seguir o básico:',
+      'Bem-vindo à comunidade da Docs. Company! Este é um espaço para colaboração, oportunidades, parcerias e comunicação profissional. Para manter tudo organizado, siga estas diretrizes:',
       '',
-      '**1. Respeite a galera**\nSem ofensas, preconceito, assédio ou ataques pessoais.',
-      '**2. Nada de spam**\nEvite flood, mensagens repetidas, marcações desnecessárias e divulgação excessiva.',
-      '**3. Use os canais corretamente**\nCada canal tem sua função. Ajude a manter tudo organizado.',
-      '**4. Nada de conteúdo impróprio**\nNão envie conteúdo sexual, ilegal, extremamente violento ou inadequado para a comunidade.',
-      '**5. Respeite as opiniões**\nPode discordar e debater, mas sem transformar a conversa em briga.',
-      '**6. Sem divulgação sem permissão**\nNão divulgue servidores, canais, redes sociais ou outros projetos sem autorização.',
-      '**7. Proteja sua privacidade**\nNão compartilhe informações pessoais suas ou de outras pessoas.',
-      '**8. Respeite a equipe**\nA moderação está aqui para manter o servidor funcionando bem. Se tiver algum problema, procure a equipe.',
+      '**1. Mantenha o respeito e o profissionalismo**\nNão são tolerados ofensas, preconceito, assédio ou ataques pessoais.',
+      '**2. Use os canais corretamente**\nCada canal tem uma finalidade. Organize suas mensagens para facilitar a comunicação de todos.',
+      '**3. Evite spam e marcações desnecessárias**\nNão envie flood, mensagens repetidas ou menções em excesso.',
+      '**4. Preserve informações e privacidade**\nNão compartilhe dados pessoais, informações internas ou conteúdos confidenciais sem autorização.',
+      '**5. Divulgações precisam de autorização**\nNão divulgue servidores, produtos, redes sociais ou projetos externos sem aprovação da equipe.',
+      '**6. Mantenha o conteúdo adequado**\nNão envie conteúdo ilegal, sexual, violento ou incompatível com o ambiente profissional.',
+      '**7. Colabore com responsabilidade**\nDebates e ideias são bem-vindos quando feitos com bom senso, clareza e respeito às opiniões diferentes.',
+      '**8. Respeite a equipe e as decisões da moderação**\nEm caso de dúvidas, conflitos ou problemas, procure a equipe da Docs. Company.',
     ].join('\n\n'))
     .addFields({
       name: '━━━━━━━━━━━━━━━━━━',
-      value: '**O MAIS IMPORTANTE**\nRespeite os outros e tenha bom senso. O descumprimento das regras pode resultar em aviso, mute, expulsão ou banimento, dependendo da situação.\n\n**Bom divertimento e seja bem-vindo ao Canto Nerd!**',
+      value: '**O MAIS IMPORTANTE**\nAtue com respeito, responsabilidade e bom senso. O descumprimento das regras pode resultar em aviso, mute, expulsão ou banimento, dependendo da situação.\n\n**Obrigado por fazer parte da Docs. Company!**',
     })
     .setImage(rulesImageUrl);
 }
 
 async function publishRulesOnce(readyClient) {
+  let savedState = {};
   try {
-    const savedState = JSON.parse(await fs.readFile(rulesStateFile, 'utf8'));
-    if (savedState.messageId) return;
+    savedState = JSON.parse(await fs.readFile(rulesStateFile, 'utf8'));
   } catch (error) {
     if (error.code !== 'ENOENT') console.warn('Não foi possível ler o estado das regras:', error.message);
   }
@@ -137,9 +138,21 @@ async function publishRulesOnce(readyClient) {
   if (!channel || !channel.isTextBased() || typeof channel.send !== 'function') {
     throw new Error('RULES_CHANNEL_ID não aponta para um canal de texto.');
   }
+  if (savedState.messageId) {
+    if (savedState.version === rulesVersion) return;
+    try {
+      const message = await channel.messages.fetch(savedState.messageId);
+      await message.edit({ embeds: [rulesEmbed()] });
+      await fs.writeFile(rulesStateFile, JSON.stringify({ ...savedState, version: rulesVersion, updatedAt: new Date().toISOString() }, null, 2), 'utf8');
+      console.log('Mensagem de regras atualizada.');
+      return;
+    } catch (error) {
+      console.warn('Não foi possível atualizar a mensagem anterior de regras:', error.message);
+    }
+  }
   const message = await channel.send({ embeds: [rulesEmbed()] });
   await fs.mkdir(path.dirname(rulesStateFile), { recursive: true });
-  await fs.writeFile(rulesStateFile, JSON.stringify({ messageId: message.id, publishedAt: new Date().toISOString() }, null, 2), 'utf8');
+  await fs.writeFile(rulesStateFile, JSON.stringify({ messageId: message.id, version: rulesVersion, publishedAt: new Date().toISOString() }, null, 2), 'utf8');
   console.log('Regras publicadas uma única vez no canal configurado.');
 }
 
