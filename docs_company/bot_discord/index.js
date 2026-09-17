@@ -177,6 +177,37 @@ function isIsoDate(value) {
   const date = new Date(Date.UTC(year, month - 1, day));
   return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
 }
+
+function commentMessages(proposals) {
+  const comments = proposals.filter((proposal) => proposal.message && proposal.message.trim());
+  if (!comments.length) return ['💬 **Comentários desta licitação**\nNenhum comentário foi enviado ainda.'];
+
+  const header = '💬 **Comentários desta licitação**\n';
+  const messages = [];
+  let current = header;
+  for (const proposal of comments) {
+    const author = proposal.user && proposal.user.username ? proposal.user.username : 'Usuário';
+    const createdAt = proposal.createdAt ? new Date(proposal.createdAt).toLocaleString('pt-BR') : 'data não informada';
+    const body = proposal.message.trim().replace(/\r?\n/g, '\n> ');
+    const entry = `\n**${author}** · ${createdAt}\n> ${body}\n`;
+    if (current.length + entry.length > 1_900 && current !== header) {
+      messages.push(current.trim());
+      current = header;
+    }
+    if (entry.length > 1_800) {
+      const parts = entry.match(/.{1,1750}(?:\s|$)|.{1,1750}/gs) || [entry];
+      for (const part of parts) {
+        if (current !== header) messages.push(current.trim());
+        messages.push((header + part).trim());
+        current = header;
+      }
+    } else {
+      current += entry;
+    }
+  }
+  if (current !== header) messages.push(current.trim());
+  return messages;
+}
 client.once(Events.ClientReady, async (readyClient) => {
   await readyClient.application.commands.set(commands);
   console.log(readyClient.user.tag + ' está online e sincronizado com o site.');
@@ -210,8 +241,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
       if (!acceptValue && newValue === null) throw new Error('Informe Aceito ou um novo valor válido em R$.');
       if (!acceptDeadline && !isIsoDate(newDeadline)) throw new Error('Informe Aceito ou um novo prazo no formato AAAA-MM-DD.');
 
-      await interaction.deferReply({ ephemeral: true });
-      await request('/api/bot/contratos/' + encodeURIComponent(contractId) + '/propostas', {
+      await interaction.deferReply();
+      const result = await request('/api/bot/contratos/' + encodeURIComponent(contractId) + '/propostas', {
         method: 'POST',
         body: JSON.stringify({
           userId: interaction.user.id,
@@ -224,7 +255,9 @@ client.on(Events.InteractionCreate, async (interaction) => {
           message: interaction.fields.getTextInputValue('comment'),
         }),
       });
-      await interaction.editReply('Proposta enviada com sucesso. Seu comentário foi vinculado a esta licitação.');
+      const commentText = result.proposal.message || '';
+      const comment = commentText ? `\n💬 Comentário: ${commentText.slice(0, 1_600)}${commentText.length > 1_600 ? '…' : ''}` : '';
+      await interaction.editReply(`✅ **${interaction.user.username}** enviou uma proposta para esta licitação.${comment}`);
     } catch (error) {
       console.error('Erro ao enviar proposta:', error);
       const message = 'Não foi possível enviar a proposta: ' + error.message;
@@ -253,6 +286,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
       if (!contractMatch) throw new Error('Licitação não encontrada.');
       const data = await request('/api/bot/contratos/' + contractMatch.id);
       await interaction.reply({ embeds: [contractEmbed(data.contract)], components: [proposalButton(data.contract)] });
+      const proposalData = await request('/api/bot/contratos/' + contractMatch.id + '/propostas');
+      for (const message of commentMessages(proposalData.proposals || [])) {
+        await interaction.followUp({ content: message });
+      }
       return;
     }
 

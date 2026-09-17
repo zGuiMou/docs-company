@@ -624,7 +624,6 @@ app.post('/api/bot/contratos/:id/propostas', requireBotApiKey, (req, res) => {
   saveData(); res.status(201).json({ ok:true, proposal });
 });
 app.get('/api/bot/contratos/:id/propostas', requireBotApiKey, (req, res) => {
-  if (String(req.query.actorId) !== String(ADMIN_ID)) return res.status(403).json({ error: 'Administrator permission required' });
   const contract = findBotContract(req.params.id);
   if (!contract) return res.status(404).json({ error:'Contract not found' });
   res.json({ proposals: proposals.filter((item) => item.contractId === contract.id).sort((a,b) => new Date(b.createdAt)-new Date(a.createdAt)) });
