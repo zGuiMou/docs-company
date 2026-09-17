@@ -2,6 +2,7 @@
 docs_company/auth-server/.env
 auth-server/.env
 docs_company/auth-server/data/docs-company.json
+docs_company/bot_discord/iniciar-bot.ps1
 # Local env variations
 .env.*
 .env.local

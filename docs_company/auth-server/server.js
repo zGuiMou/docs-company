@@ -568,12 +568,16 @@ function requireBotAdmin(req, res, next) {
   if (String(req.body.actorId) !== String(ADMIN_ID)) return res.status(403).json({ error: 'Administrator permission required' });
   next();
 }
-function findBotContract(id) { return contracts.find((contract) => contract.id === Number(id)); }
-app.get('/api/bot/contratos', requireBotApiKey, (req, res) => res.json({ contracts: [...contracts].sort((a, b) => b.id - a.id) }));
+function findBotContract(id) { return contracts.find((contract) => String(contract.id) === String(id) || contract.bidNumber === String(id)); }
+function botContractView(contract) {
+  const company = companies.find((item) => String(item.id) === String(contract.companyId) || item.name === contract.orgao);
+  return { ...contract, companyLogo: company && company.logoUrl ? company.logoUrl : '' };
+}
+app.get('/api/bot/contratos', requireBotApiKey, (req, res) => res.json({ contracts: [...contracts].sort((a, b) => b.id - a.id).map(botContractView) }));
 app.get('/api/bot/contratos/:id', requireBotApiKey, (req, res) => {
   const contract = findBotContract(req.params.id);
   if (!contract) return res.status(404).json({ error: 'Contract not found' });
-  res.json({ contract });
+  res.json({ contract: botContractView(contract) });
 });
 app.post('/api/bot/contratos', requireBotApiKey, requireBotAdmin, (req, res) => {
   const title = readText(req.body.title, 160), description = readText(req.body.description, 4000), value = Number(req.body.value);
@@ -602,6 +606,28 @@ app.delete('/api/bot/contratos/:id', requireBotApiKey, requireBotAdmin, (req, re
   const index=contracts.findIndex((contract)=>contract.id===Number(req.params.id));
   if(index<0) return res.status(404).json({error:'Contract not found'});
   const deletedContract=contracts.splice(index,1)[0]; saveData(); res.json({ok:true,deletedContract});
+});
+app.post('/api/bot/contratos/:id/propostas', requireBotApiKey, (req, res) => {
+  const contract = findBotContract(req.params.id);
+  if (!contract) return res.status(404).json({ error: 'Contract not found' });
+  if (contract.status === 'ENCERRADA') return res.status(409).json({ error: 'Closed contracts cannot receive proposals' });
+  const value = req.body.newValue === undefined || req.body.newValue === null ? null : Number(req.body.newValue);
+  if (value !== null && (!Number.isFinite(value) || value < 0)) return res.status(400).json({ error: 'Invalid proposed value' });
+  const acceptValue = !!req.body.acceptValue;
+  const acceptDeadline = !!req.body.acceptDeadline;
+  const deadline = readText(req.body.newDeadline, 10) || null;
+  if (!acceptValue && value === null) return res.status(400).json({ error: 'A new value is required when the contract value is not accepted' });
+  if (!acceptDeadline && !deadline) return res.status(400).json({ error: 'A new deadline is required when the contract deadline is not accepted' });
+  const proposal = { id: crypto.randomBytes(8).toString('hex'), contractId: contract.id, user: { id: String(req.body.userId), username: readText(req.body.username, 100), avatar: readText(req.body.avatar, 2000) || null }, acceptValue, acceptDeadline, newValue: value, newDeadline: deadline, message: readText(req.body.message, 2000), status: 'PENDENTE', createdAt: new Date().toISOString() };
+  proposals.push(proposal);
+  if (contract.status === 'ABERTA') contract.status = 'ANDAMENTO';
+  saveData(); res.status(201).json({ ok:true, proposal });
+});
+app.get('/api/bot/contratos/:id/propostas', requireBotApiKey, (req, res) => {
+  if (String(req.query.actorId) !== String(ADMIN_ID)) return res.status(403).json({ error: 'Administrator permission required' });
+  const contract = findBotContract(req.params.id);
+  if (!contract) return res.status(404).json({ error:'Contract not found' });
+  res.json({ proposals: proposals.filter((item) => item.contractId === contract.id).sort((a,b) => new Date(b.createdAt)-new Date(a.createdAt)) });
 });
 // List contracts (for admin/any) - optional
 app.get('/api/contratos', (req, res) => {
