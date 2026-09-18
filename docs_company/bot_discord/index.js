@@ -22,6 +22,8 @@ const rulesChannelId = process.env.RULES_CHANNEL_ID || '1549529444987834509';
 const rulesImageUrl = process.env.RULES_IMAGE_URL || 'https://i.imgur.com/raDRCcV.png';
 const developmentChannelId = process.env.DEVELOPMENT_CHANNEL_ID || '1550243018122989678';
 const developmentVersion = 4;
+const consultasChannelId = process.env.CONSULTAS_CHANNEL_ID || '1550242350415089704';
+const consultasVersion = 1;
 const faqChannelId = process.env.FAQ_CHANNEL_ID || '1550243118287159346';
 const rulesStateFile = path.join(__dirname, 'data', 'rules-state.json');
 const rulesVersion = 5;
@@ -133,6 +135,21 @@ function developmentEmbed() {
       'Experiência não é obrigatória. Compromisso, iniciativa e vontade de aprender são essenciais.',
       '**Interessado?** Fale com a equipe da Docs. Company.',
     ].join('\n\n'));
+}
+
+function consultasEmbed() {
+  return new EmbedBuilder()
+    .setColor(0x3498db)
+    .setTitle('CONSULTAS — COMANDOS DE LICITAÇÕES')
+    .setDescription('Use `/licitacao` e selecione o comando desejado. As propostas são enviadas pelo botão **Fazer proposta** em cada licitação.')
+    .addFields(
+      { name: '/licitacao listar', value: 'Lista as licitações. Filtros disponíveis: `status`, `categoria` e `entidade`.' },
+      { name: '/licitacao ver', value: 'Mostra os detalhes de uma licitação pelo seu número ou ID.' },
+      { name: '/licitacao criar', value: 'Cria uma licitação. Requer título e valor; prazo, descrição e status são opcionais. Administradores apenas.' },
+      { name: '/licitacao editar', value: 'Atualiza título, valor, prazo, descrição ou status de uma licitação. Administradores apenas.' },
+      { name: '/licitacao encerrar', value: 'Encerra uma licitação e registra o motivo. Administradores apenas.' },
+      { name: '/licitacao excluir', value: 'Remove uma licitação. Administradores apenas.' },
+    );
 }
 
 const faqTopics = [
@@ -247,6 +264,42 @@ async function publishDevelopmentAnnouncementOnce(readyClient) {
   await fs.mkdir(path.dirname(rulesStateFile), { recursive: true });
   await fs.writeFile(rulesStateFile, JSON.stringify({ ...savedState, developmentMessageId: message.id, developmentThreadId: threadId, developmentVersion, developmentPublishedAt: new Date().toISOString() }, null, 2), 'utf8');
   console.log('Aviso de desenvolvimento atualizado e vinculado a uma thread.');
+}
+
+async function publishConsultasTutorialOnce(readyClient) {
+  let savedState = {};
+  try {
+    savedState = JSON.parse(await fs.readFile(rulesStateFile, 'utf8'));
+  } catch (error) {
+    if (error.code !== 'ENOENT') console.warn('Não foi possível ler o estado do tutorial de consultas:', error.message);
+  }
+
+  const channel = await readyClient.channels.fetch(consultasChannelId);
+  if (!channel) throw new Error('CONSULTAS_CHANNEL_ID não aponta para um canal válido.');
+  if (!channel.isTextBased() || typeof channel.send !== 'function') {
+    throw new Error('CONSULTAS_CHANNEL_ID precisa ser um canal de texto.');
+  }
+
+  let message;
+  if (savedState.consultasTutorialMessageId) {
+    try {
+      message = await channel.messages.fetch(savedState.consultasTutorialMessageId);
+      if (savedState.consultasVersion !== consultasVersion) await message.edit({ embeds: [consultasEmbed()] });
+    } catch (error) {
+      console.warn('Não foi possível reutilizar o tutorial de consultas:', error.message);
+    }
+  }
+  if (!message) message = await channel.send({ embeds: [consultasEmbed()] });
+  if (!message.pinned) await message.pin();
+
+  await fs.mkdir(path.dirname(rulesStateFile), { recursive: true });
+  await fs.writeFile(rulesStateFile, JSON.stringify({
+    ...savedState,
+    consultasTutorialMessageId: message.id,
+    consultasVersion,
+    consultasTutorialPublishedAt: new Date().toISOString(),
+  }, null, 2), 'utf8');
+  console.log('Tutorial de consultas publicado e fixado.');
 }
 
 async function publishFaqThreadsOnce(readyClient) {
@@ -493,6 +546,7 @@ client.once(Events.ClientReady, async (readyClient) => {
   setInterval(() => { void refreshEntityCache(); }, 5 * 60 * 1000).unref();
   await publishRulesOnce(readyClient).catch((error) => console.error('Não foi possível publicar as regras:', error.message));
   await publishDevelopmentAnnouncementOnce(readyClient).catch((error) => console.error('Não foi possível publicar o aviso de desenvolvimento:', error.message));
+  await publishConsultasTutorialOnce(readyClient).catch((error) => console.error('Não foi possível publicar o tutorial de consultas:', error.message));
   await publishFaqThreadsOnce(readyClient).catch((error) => console.error('Não foi possível criar os tópicos de dúvidas:', error.message));
   console.log(readyClient.user.tag + ' está online e sincronizado com o site. Entidades carregadas: ' + entityCache.values.length);
 });
