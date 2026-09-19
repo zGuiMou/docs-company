@@ -671,8 +671,8 @@
           const deadlineLine = element('div', deadlineText); deadlineLine.style.color = 'var(--muted)';
           const commentLine = element('div', comment); commentLine.style.marginTop = '8px';
           details.append(header, valueLine, deadlineLine, commentLine);
-          if (isAdminUser && p.message && p.message.trim()) {
-            const deleteCommentButton = element('button', 'Excluir comentário');
+          if (isAdminUser) {
+            const deleteCommentButton = element('button', 'Excluir registro');
             deleteCommentButton.type = 'button';
             deleteCommentButton.style.cssText = 'margin-top:10px;padding:7px 10px;border:1px solid rgba(255,110,110,.5);border-radius:8px;background:transparent;color:#ffb0b0;font-size:11px;font-weight:800;cursor:pointer';
             deleteCommentButton.addEventListener('click', () => deleteProposalComment(p.id, contractId));
@@ -684,14 +684,14 @@
     }
 
     async function deleteProposalComment(proposalId, contractId) {
-      if (!confirm('Excluir este comentário? A proposta e o histórico de decisão serão mantidos.')) return;
+      if (!confirm('Excluir este registro de proposta e comentário? Esta ação não pode ser desfeita.')) return;
       try {
         const response = await fetch(`http://localhost:3000/api/propostas/${encodeURIComponent(proposalId)}/comentario`, { method: 'DELETE', credentials: 'include' });
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Não foi possível excluir o comentário.');
+        if (!response.ok) throw new Error(data.error || 'Não foi possível excluir o registro.');
         fetchProposals(contractId);
       } catch (error) {
-        alert(error.message || 'Erro ao excluir o comentário.');
+        alert(error.message || 'Erro ao excluir o registro.');
       }
     }
 
