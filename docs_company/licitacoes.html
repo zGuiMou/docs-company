@@ -23,7 +23,7 @@
     .page-top{padding:120px 24px 40px}
     .wrap{width:min(1180px,100%);margin:auto}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.2em;color:var(--blue);margin-bottom:20px}
     .section-title{font-size:clamp(42px,6vw,76px);line-height:.96;letter-spacing:-.07em;margin:0 0 18px}.section-lead{font-size:17px;line-height:1.7;color:var(--muted);max-width:760px;margin:0 0 28px}
-    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:26px 0 28px}.stat{padding:18px 20px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:16px}.stat small{display:block;color:var(--muted);font-size:10px;letter-spacing:.14em;text-transform:uppercase}.stat strong{display:block;margin-top:10px;font-size:28px;letter-spacing:-.06em}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:26px 0 28px}.stat{padding:18px 20px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:16px}.stat small{display:block;color:var(--muted);font-size:10px;letter-spacing:.14em;text-transform:uppercase}.stat strong{display:block;margin-top:10px;font-size:28px;letter-spacing:-.06em}.stat:has(#stat-open){border-color:rgba(74,211,122,.42);background:rgba(74,211,122,.08)}.stat:has(#stat-open) strong{color:#8ff0ae}.stat:has(#stat-progress){border-color:rgba(242,197,109,.42);background:rgba(242,197,109,.08)}.stat:has(#stat-progress) strong{color:#ffe09a}.stat:has(#stat-closed){border-color:rgba(255,110,110,.42);background:rgba(255,110,110,.08)}.stat:has(#stat-closed) strong{color:#ffb0b0}
     .toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-top:10px}
     .search{flex:1;min-width:260px;display:flex;align-items:center;gap:10px;padding:15px 18px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:12px;box-shadow:var(--shadow)}
     .search input{flex:1;background:transparent;border:0;outline:none;color:var(--text);font-size:14px}.search input::placeholder{color:#75839a}.search span{font-size:18px;color:var(--muted)}
@@ -85,16 +85,16 @@
 
         <div class="stats">
           <div class="stat">
-            <small>Em aberto</small>
+            <small>Licitações abertas</small>
             <strong id="stat-open">0</strong>
           </div>
           <div class="stat">
-            <small>Valor total</small>
-            <strong id="stat-value">R$ 0</strong>
+            <small>Em andamento</small>
+            <strong id="stat-progress">0</strong>
           </div>
           <div class="stat">
-            <small>Próx. vencimento</small>
-            <strong id="stat-deadline">—</strong>
+            <small>Encerradas</small>
+            <strong id="stat-closed">0</strong>
           </div>
         </div>
 
@@ -413,8 +413,8 @@
     const listEl = document.getElementById('licList');
     const emptyState = document.getElementById('emptyState');
     const statOpen = document.getElementById('stat-open');
-    const statValue = document.getElementById('stat-value');
-    const statDeadline = document.getElementById('stat-deadline');
+    const statProgress = document.getElementById('stat-progress');
+    const statClosed = document.getElementById('stat-closed');
 
     function formatCurrency(value) {
       return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(value);
@@ -523,15 +523,12 @@
 
     function updateStats(filtered) {
       const openCount = filtered.filter((item) => item.status === 'ABERTA').length;
-      const totalValue = filtered.reduce((sum, item) => sum + item.value, 0);
-      const nextDeadline = filtered
-        .map((item) => new Date(item.deadline))
-        .filter((date) => !Number.isNaN(date.getTime()))
-        .sort((a, b) => a - b)[0];
+      const progressCount = filtered.filter((item) => item.status === 'ANDAMENTO').length;
+      const closedCount = filtered.filter((item) => item.status === 'ENCERRADA').length;
 
       statOpen.textContent = String(openCount);
-      statValue.textContent = formatCurrency(totalValue);
-      statDeadline.textContent = nextDeadline ? nextDeadline.toLocaleDateString('pt-BR') : '—';
+      statProgress.textContent = String(progressCount);
+      statClosed.textContent = String(closedCount);
     }
 
     async function loadSavedContracts() {
