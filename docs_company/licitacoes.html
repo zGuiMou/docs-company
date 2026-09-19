@@ -670,9 +670,29 @@
           const valueLine = element('div', valueText); valueLine.style.cssText = 'margin-top:8px;color:var(--muted)';
           const deadlineLine = element('div', deadlineText); deadlineLine.style.color = 'var(--muted)';
           const commentLine = element('div', comment); commentLine.style.marginTop = '8px';
-          details.append(header, valueLine, deadlineLine, commentLine); row.append(avatarBox, details); container.appendChild(row);
+          details.append(header, valueLine, deadlineLine, commentLine);
+          if (isAdminUser && p.message && p.message.trim()) {
+            const deleteCommentButton = element('button', 'Excluir comentário');
+            deleteCommentButton.type = 'button';
+            deleteCommentButton.style.cssText = 'margin-top:10px;padding:7px 10px;border:1px solid rgba(255,110,110,.5);border-radius:8px;background:transparent;color:#ffb0b0;font-size:11px;font-weight:800;cursor:pointer';
+            deleteCommentButton.addEventListener('click', () => deleteProposalComment(p.id, contractId));
+            details.appendChild(deleteCommentButton);
+          }
+          row.append(avatarBox, details); container.appendChild(row);
         });
       }catch(err){console.error('Failed load proposals',err);}
+    }
+
+    async function deleteProposalComment(proposalId, contractId) {
+      if (!confirm('Excluir este comentário? A proposta e o histórico de decisão serão mantidos.')) return;
+      try {
+        const response = await fetch(`http://localhost:3000/api/propostas/${encodeURIComponent(proposalId)}/comentario`, { method: 'DELETE', credentials: 'include' });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Não foi possível excluir o comentário.');
+        fetchProposals(contractId);
+      } catch (error) {
+        alert(error.message || 'Erro ao excluir o comentário.');
+      }
     }
 
     // Handle proposal button click

@@ -674,6 +674,20 @@ app.patch('/api/propostas/:id/status', requireAuth, (req, res) => {
   return res.json({ ok: true, proposal });
 });
 
+// Only administrators can remove the comment attached to a proposal.
+// The proposal itself remains available for auditing and decision history.
+app.delete('/api/propostas/:id/comentario', requireAuth, (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
+  const proposal = proposals.find(item => item.id === req.params.id);
+  if (!proposal) return res.status(404).json({ error: 'Proposal not found' });
+  if (!readText(proposal.message, 2000)) return res.status(404).json({ error: 'Comment not found' });
+  proposal.message = '';
+  proposal.commentDeletedAt = new Date().toISOString();
+  proposal.commentDeletedBy = req.user.id;
+  saveData();
+  return res.json({ ok: true, proposal });
+});
+
 // The company that owns a contract can close it, with a recorded reason.
 app.patch('/api/contratos/:id', requireAuth, (req, res) => {
   if (!isAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
