@@ -23,7 +23,7 @@
     .page-top{padding:120px 24px 40px}
     .wrap{width:min(1180px,100%);margin:auto}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.2em;color:var(--blue);margin-bottom:20px}
     .section-title{font-size:clamp(42px,6vw,76px);line-height:.96;letter-spacing:-.07em;margin:0 0 18px}.section-lead{font-size:17px;line-height:1.7;color:var(--muted);max-width:760px;margin:0 0 28px}
-    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:26px 0 28px}.stat{padding:18px 20px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:16px}.stat small{display:block;color:var(--muted);font-size:10px;letter-spacing:.14em;text-transform:uppercase}.stat strong{display:block;margin-top:10px;font-size:28px;letter-spacing:-.06em}.stat:has(#stat-open){border-color:rgba(74,211,122,.42);background:rgba(74,211,122,.08)}.stat:has(#stat-open) strong{color:#8ff0ae}.stat:has(#stat-progress){border-color:rgba(242,197,109,.42);background:rgba(242,197,109,.08)}.stat:has(#stat-progress) strong{color:#ffe09a}.stat:has(#stat-closed){border-color:rgba(255,110,110,.42);background:rgba(255,110,110,.08)}.stat:has(#stat-closed) strong{color:#ffb0b0}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:26px 0 28px}.stat{padding:18px 20px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:16px;text-align:left;color:var(--text);cursor:pointer;transition:.2s}.stat:hover,.stat.active{transform:translateY(-2px);box-shadow:0 12px 28px rgba(0,0,0,.2)}.stat small{display:block;color:var(--muted);font-size:10px;letter-spacing:.14em;text-transform:uppercase}.stat strong{display:block;margin-top:10px;font-size:28px;letter-spacing:-.06em}.stat:has(#stat-open){border-color:rgba(74,211,122,.42);background:rgba(74,211,122,.08)}.stat:has(#stat-open) strong{color:#8ff0ae}.stat:has(#stat-progress){border-color:rgba(242,197,109,.42);background:rgba(242,197,109,.08)}.stat:has(#stat-progress) strong{color:#ffe09a}.stat:has(#stat-closed){border-color:rgba(255,110,110,.42);background:rgba(255,110,110,.08)}.stat:has(#stat-closed) strong{color:#ffb0b0}.stat.active{outline:2px solid currentColor}
     .toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-top:10px}
     .search{flex:1;min-width:260px;display:flex;align-items:center;gap:10px;padding:15px 18px;border:1px solid var(--line);background:rgba(255,255,255,.02);border-radius:12px;box-shadow:var(--shadow)}
     .search input{flex:1;background:transparent;border:0;outline:none;color:var(--text);font-size:14px}.search input::placeholder{color:#75839a}.search span{font-size:18px;color:var(--muted)}
@@ -403,8 +403,7 @@
       }
     ];
 
-    const filterOptions = ['Todos', 'ABERTA', 'ANDAMENTO', 'ENCERRADA'];
-    let activeFilter = 'Todos';
+    let activeFilter = 'ATIVAS';
     let myCompanyId = null;
     let isAdminUser = false;
 
@@ -415,6 +414,24 @@
     const statOpen = document.getElementById('stat-open');
     const statProgress = document.getElementById('stat-progress');
     const statClosed = document.getElementById('stat-closed');
+    const statusCards = [...document.querySelectorAll('.stats .stat')];
+    const statusFilters = ['ABERTA', 'ANDAMENTO', 'ENCERRADA'];
+    filtersEl.remove();
+
+    function renderStatusCards() {
+      statusCards.forEach((card, index) => {
+        const selected = statusFilters[index] === activeFilter;
+        card.classList.toggle('active', selected);
+        card.tabIndex = 0;
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-pressed', String(selected));
+      });
+    }
+    statusCards.forEach((card, index) => {
+      const select = () => { activeFilter = activeFilter === statusFilters[index] ? 'ATIVAS' : statusFilters[index]; renderStatusCards(); renderList(); };
+      card.addEventListener('click', select);
+      card.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); select(); } });
+    });
 
     function formatCurrency(value) {
       return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(value);
@@ -423,21 +440,7 @@
 
     function formatOnlyDate(iso){ if(!iso) return '—'; const d=new Date(iso); const dd=String(d.getDate()).padStart(2,'0'); const mm=String(d.getMonth()+1).padStart(2,'0'); const yyyy=d.getFullYear(); return `${dd}/${mm}/${yyyy}` }
 
-    function renderFilters() {
-      filtersEl.innerHTML = '';
-      filterOptions.forEach((option) => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = `filter-chip ${option === activeFilter ? 'active' : ''}`;
-        btn.textContent = option;
-        btn.addEventListener('click', () => {
-          activeFilter = option;
-          renderFilters();
-          renderList();
-        });
-        filtersEl.appendChild(btn);
-      });
-    }
+    function renderFilters() {}
 
     function getStatusClass(status) {
       const normalized = status.toLowerCase().replace(/\s+/g, '');
@@ -463,7 +466,9 @@
     function renderList() {
       const term = searchInput.value.trim().toLowerCase();
       const filtered = licitacoes.filter((item) => {
-        const matchesFilter = activeFilter === 'Todos' || item.status === activeFilter;
+        const matchesFilter = activeFilter === 'ATIVAS'
+          ? item.status === 'ABERTA' || item.status === 'ANDAMENTO'
+          : item.status === activeFilter;
         const matchesSearch =
           !term ||
           item.code.toLowerCase().includes(term) ||
@@ -477,7 +482,10 @@
       listEl.innerHTML = '';
       emptyState.classList.toggle('show', filtered.length === 0);
 
-      filtered.forEach((item) => {
+      filtered.sort((a, b) => {
+        const order = { ABERTA: 0, ANDAMENTO: 1, ENCERRADA: 2 };
+        return (order[a.status] ?? 9) - (order[b.status] ?? 9);
+      }).forEach((item) => {
         const card = document.createElement('article');
         card.className = `lic-card status-${String(item.status || 'ABERTA').toLowerCase()}`;
         const main = element('div', undefined, 'lic-card-main');
@@ -507,11 +515,11 @@
         openButton.type = 'button';
         openButton.dataset.id = String(item.id);
         actions.appendChild(openButton);
-        if (item.status === 'ABERTA') {
+        if (item.status === 'ABERTA' || item.status === 'ANDAMENTO') {
           const proposalButton = element('button', 'Fazer proposta', 'proposal-card-btn');
           proposalButton.type = 'button';
           proposalButton.dataset.id = String(item.id);
-          proposalButton.style.cssText = 'margin-top:16px;padding:11px 16px;border:1px solid rgba(74,211,122,.5);background:linear-gradient(135deg,#4ad37a,#6fe6a1);color:#041018;border-radius:11px;font-size:11px;letter-spacing:.13em;text-transform:uppercase;cursor:pointer;font-weight:900';
+          proposalButton.style.cssText = 'margin-top:16px;padding:11px 16px;border:1px solid rgba(90,166,255,.5);background:linear-gradient(135deg,#5aa6ff,#84c4ff);color:#041018;border-radius:11px;font-size:11px;letter-spacing:.13em;text-transform:uppercase;cursor:pointer;font-weight:900';
           actions.appendChild(proposalButton);
         }
         side.append(valueBlock, actions);
@@ -529,13 +537,13 @@
 
       // (proposal button now moved inside contract modal)
 
-      updateStats(filtered);
+      updateStats();
     }
 
-    function updateStats(filtered) {
-      const openCount = filtered.filter((item) => item.status === 'ABERTA').length;
-      const progressCount = filtered.filter((item) => item.status === 'ANDAMENTO').length;
-      const closedCount = filtered.filter((item) => item.status === 'ENCERRADA').length;
+    function updateStats() {
+      const openCount = licitacoes.filter((item) => item.status === 'ABERTA').length;
+      const progressCount = licitacoes.filter((item) => item.status === 'ANDAMENTO').length;
+      const closedCount = licitacoes.filter((item) => item.status === 'ENCERRADA').length;
 
       statOpen.textContent = String(openCount);
       statProgress.textContent = String(progressCount);
@@ -812,6 +820,7 @@
 
     searchInput.addEventListener('input', renderList);
     renderFilters();
+    renderStatusCards();
     renderList();
     // Static entries are fallbacks. Keep them out of view until the API state
     // (including entity logos) has been applied.
