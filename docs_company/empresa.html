@@ -127,7 +127,6 @@
       canManage = isAdmin || Boolean(data.company && String(data.company.id) === String(company.id));
       if (!canManage) { document.getElementById('admin')?.closest('.card')?.remove(); return; }
       document.getElementById('admin') && (document.getElementById('admin').style.display = 'block');
-      if (!isAdmin) ['tagline', 'logoUrl', 'bannerUrl'].forEach(fieldId => document.getElementById(fieldId)?.closest('label')?.remove());
       installPostEditors();
     }
     const companyAccessWatcher = setInterval(() => { if (company && currentUser) { clearInterval(companyAccessWatcher); resolveCompanyAccess(); } }, 150);

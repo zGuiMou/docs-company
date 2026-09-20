@@ -442,6 +442,12 @@ app.patch('/api/empresas/:id', requireAuth, (req, res) => {
   if (!isAdmin(req)) {
     company.description = readText(req.body.description, 3000);
     company.profileTagline = readText(req.body.profileTagline, 180);
+    const logoUrl = readImageUrl(req.body.logoUrl);
+    const bannerUrl = readImageUrl(req.body.bannerUrl);
+    if (readText(req.body.logoUrl, 2000) && !logoUrl) return res.status(400).json({ error: 'Logo URL must use HTTPS' });
+    if (readText(req.body.bannerUrl, 2000) && !bannerUrl) return res.status(400).json({ error: 'Banner URL must use HTTPS' });
+    company.logoUrl = logoUrl;
+    company.bannerUrl = bannerUrl;
     saveData();
     return res.json({ ok: true, company });
   }
