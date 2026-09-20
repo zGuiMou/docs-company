@@ -502,11 +502,18 @@
         const valueBlock = document.createElement('div');
         valueBlock.append(element('b', formatContractValue(item)), element('span', formatOnlyDate(item.deadline)));
         const actions = document.createElement('div');
-        actions.style.cssText = 'display:flex;flex-direction:column;gap:8px;align-items:flex-end';
+        actions.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end';
         const openButton = element('button', 'Ver contrato', 'contract-btn');
         openButton.type = 'button';
         openButton.dataset.id = String(item.id);
         actions.appendChild(openButton);
+        if (item.status === 'ABERTA') {
+          const proposalButton = element('button', 'Fazer proposta', 'proposal-card-btn');
+          proposalButton.type = 'button';
+          proposalButton.dataset.id = String(item.id);
+          proposalButton.style.cssText = 'margin-top:16px;padding:11px 16px;border:1px solid rgba(74,211,122,.5);background:linear-gradient(135deg,#4ad37a,#6fe6a1);color:#041018;border-radius:11px;font-size:11px;letter-spacing:.13em;text-transform:uppercase;cursor:pointer;font-weight:900';
+          actions.appendChild(proposalButton);
+        }
         side.append(valueBlock, actions);
         card.append(main, side);
         listEl.appendChild(card);
@@ -514,6 +521,10 @@
 
       listEl.querySelectorAll('.contract-btn').forEach((button) => {
         button.addEventListener('click', () => openContract(Number(button.dataset.id)));
+      });
+
+      listEl.querySelectorAll('.proposal-card-btn').forEach((button) => {
+        button.addEventListener('click', () => handleProposalClick(Number(button.dataset.id)));
       });
 
       // (proposal button now moved inside contract modal)
