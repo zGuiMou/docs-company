@@ -151,6 +151,40 @@
       if(currentUser)document.getElementById('feedbackComposer').style.display='block'; document.getElementById('sendFeedback').addEventListener('click',sendFeedback);loadFeedback();
     }
     const feedbackWatcher=setInterval(()=>{if(company&&page.querySelector('.layout')){mountFeedback();if(document.getElementById('feedbackSection'))clearInterval(feedbackWatcher);}},150);
+    function attachPostCreator(){
+      const composer = document.getElementById('commentComposer'), postsCard = document.getElementById('comments')?.closest('.card');
+      if (!composer || !postsCard) return;
+      let creator = document.getElementById('postCreatorSection');
+      if (!creator) {
+        creator = document.createElement('section'); creator.id = 'postCreatorSection'; creator.className = 'card'; creator.style.marginTop = '22px';
+        creator.innerHTML = '<h2>Criar publicação</h2><p class="notice">Publicações oficiais da entidade.</p>';
+        postsCard.insertAdjacentElement('afterend', creator); creator.append(composer);
+      }
+      creator.style.display = canManage ? 'block' : 'none';
+    }
+    async function decorateYoutubeEmbeds(){
+      const host = document.getElementById('comments'); if (!host) return;
+      const response = await fetch(api(`/api/empresas/${encodeURIComponent(id)}/posts`), { cache:'no-store' }); if (!response.ok) return;
+      const data = await response.json();
+      [...host.children].forEach((article, index) => {
+        const post = data.posts[index]; if (!post || post.mediaType !== 'youtube' || article.dataset.youtubeEmbedded) return;
+        const image = article.querySelector(':scope > img'); if (!image) return;
+        const frame = document.createElement('iframe'); frame.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(post.youtubeId)}`; frame.title = 'Vídeo do YouTube'; frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'; frame.allowFullscreen = true; frame.style.cssText = 'width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#000';
+        image.replaceWith(frame); article.dataset.youtubeEmbedded = 'true';
+      });
+    }
+    async function togglePin(postId, pinned){ const response=await fetch(api(`/api/posts/${encodeURIComponent(postId)}/fixar`),{method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({pinned})}); if(!response.ok)return alert('Não foi possível atualizar o destaque.'); loadComments(); }
+    function installPostPinning(){
+      if (!isAdmin) return;
+      document.querySelectorAll('[id^="postComment-"]').forEach(field => {
+        const postId = field.id.slice('postComment-'.length), article = field.closest('article.comment'); if (!article || article.querySelector('[data-pin-post]')) return;
+        const button=document.createElement('button');button.type='button';button.dataset.pinPost=postId;button.textContent='Fixar no topo';button.addEventListener('click',()=>togglePin(postId,true));article.append(button);
+      });
+    }
+    const postAreaWatcher = setInterval(() => {
+      if (!company || !document.getElementById('comments')) return;
+      attachPostCreator(); installPostEditors(); installPostPinning(); decorateYoutubeEmbeds();
+    }, 600);
   </script>
 </body>
 </html>

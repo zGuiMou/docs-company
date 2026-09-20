@@ -694,7 +694,7 @@ app.post('/api/empresas/:id/opinioes', requireAuth, (req, res) => {
 app.get('/api/empresas/:id/posts', (req, res) => {
   if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
   const posts = companyComments.filter(item => item.companyId === req.params.id && item.type === 'post')
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)) || new Date(b.createdAt) - new Date(a.createdAt))
     .map(post => ({ ...publicComment(post), comments: companyComments.filter(item => item.parentId === post.id && item.type === 'post-comment').sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)).map(publicComment) }));
   res.set('Cache-Control', 'no-store');
   return res.json({ posts });
@@ -719,6 +719,16 @@ app.patch('/api/posts/:id', requireAuth, (req, res) => {
   const media = readPostMedia(req.body.imageUrl);
   if (!body || !media) return res.status(400).json({ error: 'A post requires a message and one HTTPS image or YouTube URL' });
   post.body = body; post.imageUrl = media.thumbnailUrl; post.mediaUrl = media.url; post.mediaType = media.type; post.youtubeId = media.videoId; post.updatedAt = new Date().toISOString();
+  saveData();
+  return res.json({ ok: true, post: publicComment(post) });
+});
+
+app.patch('/api/posts/:id/fixar', requireAuth, (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: 'Only administrators can pin posts' });
+  const post = companyComments.find(item => item.id === req.params.id && item.type === 'post');
+  if (!post) return res.status(404).json({ error: 'Post not found' });
+  if (req.body.pinned === true) companyComments.forEach(item => { if (item.type === 'post' && item.companyId === post.companyId) item.pinned = false; });
+  post.pinned = req.body.pinned === true;
   saveData();
   return res.json({ ok: true, post: publicComment(post) });
 });
