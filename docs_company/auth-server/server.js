@@ -533,7 +533,13 @@ app.delete('/api/comentarios/:id', requireAuth, (req, res) => {
   if (!isAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
   const index = companyComments.findIndex(item => item.id === req.params.id);
   if (index === -1) return res.status(404).json({ error: 'Comment not found' });
-  companyComments.splice(index, 1);
+  const [removed] = companyComments.splice(index, 1);
+  // Deleting a post also removes its replies.
+  if (removed.type === 'post') {
+    for (let childIndex = companyComments.length - 1; childIndex >= 0; childIndex -= 1) {
+      if (companyComments[childIndex].parentId === removed.id) companyComments.splice(childIndex, 1);
+    }
+  }
   saveData();
   return res.json({ ok: true });
 });
@@ -627,6 +633,41 @@ app.get('/api/bot/entidades', requireBotApiKey, (req, res) => {
   companies.forEach((company) => { if (company.name) names.add(company.name); });
   contracts.forEach((contract) => { if (contract.orgao) names.add(contract.orgao); });
   res.json({ entities: [...names].sort((a, b) => a.localeCompare(b, 'pt-BR')) });
+});
+
+function publicComment(comment) {
+  const user = comment.user && users[comment.user.id];
+  return { ...comment, user: user ? { id: user.id, username: user.username, avatar: user.avatar || null } : comment.user };
+}
+
+app.get('/api/empresas/:id/posts', (req, res) => {
+  if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
+  const posts = companyComments.filter(item => item.companyId === req.params.id && item.type === 'post')
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .map(post => ({ ...publicComment(post), comments: companyComments.filter(item => item.parentId === post.id && item.type === 'post-comment').sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)).map(publicComment) }));
+  res.set('Cache-Control', 'no-store');
+  return res.json({ posts });
+});
+
+app.post('/api/empresas/:id/posts', requireAuth, (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: 'Only administrators can publish posts' });
+  if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
+  const body = readText(req.body.body, 1500);
+  const imageUrl = readImageUrl(req.body.imageUrl);
+  if (!body || !imageUrl) return res.status(400).json({ error: 'A post requires a message and an HTTPS image URL' });
+  const post = { id: crypto.randomBytes(8).toString('hex'), type: 'post', companyId: req.params.id, body, imageUrl, user: { id: req.user.id, username: req.user.username, avatar: req.user.avatar || null }, createdAt: new Date().toISOString() };
+  companyComments.push(post); saveData();
+  return res.status(201).json({ ok: true, post: publicComment(post) });
+});
+
+app.post('/api/posts/:id/comentarios', requireAuth, (req, res) => {
+  const post = companyComments.find(item => item.id === req.params.id && item.type === 'post');
+  if (!post) return res.status(404).json({ error: 'Post not found' });
+  const body = readText(req.body.body, 1500);
+  if (!body) return res.status(400).json({ error: 'Comment is required' });
+  const comment = { id: crypto.randomBytes(8).toString('hex'), type: 'post-comment', parentId: post.id, companyId: post.companyId, body, user: { id: req.user.id, username: req.user.username, avatar: req.user.avatar || null }, createdAt: new Date().toISOString() };
+  companyComments.push(comment); saveData();
+  return res.status(201).json({ ok: true, comment: publicComment(comment) });
 });
 
 app.get('/api/empresas/:id/colaboradores', (req, res) => {
