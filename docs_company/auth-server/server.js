@@ -398,12 +398,19 @@ app.get('/api/empresas/:id', (req, res) => {
   const ratings = companyRatings.filter(rating => rating.companyId === company.id);
   const rating = ratings.length ? ratings.reduce((total, item) => total + item.value, 0) / ratings.length : 0;
   res.set('Cache-Control', 'no-store');
+  const savedOfficials = company.officials && typeof company.officials === 'object' ? company.officials : {};
+  const savedMayor = savedOfficials.prefeito && typeof savedOfficials.prefeito === 'object' ? savedOfficials.prefeito : {};
+  const linkedMayor = savedMayor.userId && userCompany[savedMayor.userId] === company.id ? users[savedMayor.userId] : null;
   return res.json({ company: {
-    id: company.id, name: company.name, entityType: company.entityType || 'EMPRESA',
+    id: company.id, name: company.name, entityType: company.entityType === 'GOVERNO' ? 'PREFEITURA' : company.entityType || 'EMPRESA',
     industry: company.industry || 'Não informado', description: company.description || '',
     logoUrl: company.logoUrl || '', bannerUrl: company.bannerUrl || '',
     profileTagline: company.profileTagline || '', mediaUrls: Array.isArray(company.mediaUrls) ? company.mediaUrls : [],
     estimatedNetWorth: Number(company.estimatedNetWorth) || 0,
+    officials: {
+      presidente: { name: readText(savedOfficials.presidente?.name, 100) || 'Não informado', imageUrl: readImageUrl(savedOfficials.presidente?.imageUrl) || '' },
+      prefeito: { name: linkedMayor?.username || readText(savedMayor.name, 100) || 'Não informado', imageUrl: linkedMayor?.avatar ? `https://cdn.discordapp.com/avatars/${linkedMayor.id}/${linkedMayor.avatar}.${linkedMayor.avatar.startsWith('a_') ? 'gif' : 'png'}?size=128` : readImageUrl(savedMayor.imageUrl) || '', linked: Boolean(linkedMayor) }
+    },
     rating, ratingCount: ratings.length
   }});
 });
@@ -667,6 +674,30 @@ app.get('/api/bot/entidades', requireBotApiKey, (req, res) => {
   companies.forEach((company) => { if (company.name) names.add(company.name); });
   contracts.forEach((contract) => { if (contract.orgao) names.add(contract.orgao); });
   res.json({ entities: [...names].sort((a, b) => a.localeCompare(b, 'pt-BR')) });
+});
+
+app.patch('/api/empresas/:id/autoridades', requireAuth, (req, res) => {
+  const company = companies.find(item => item.id === req.params.id);
+  if (!company) return res.status(404).json({ error: 'Company not found' });
+  if (!['PREFEITURA', 'GOVERNO'].includes(company.entityType)) return res.status(400).json({ error: 'Officials are only available for city halls' });
+  if (!canManageCompany(req, company.id)) return res.status(403).json({ error: 'Forbidden' });
+  const presidenteName = readText(req.body.presidenteName, 100);
+  const presidenteImageUrl = readImageUrl(req.body.presidenteImageUrl);
+  const prefeitoName = readText(req.body.prefeitoName, 100);
+  const prefeitoImageUrl = readImageUrl(req.body.prefeitoImageUrl);
+  if (readText(req.body.presidenteImageUrl, 2000) && !presidenteImageUrl) return res.status(400).json({ error: 'President image must use HTTPS' });
+  if (readText(req.body.prefeitoImageUrl, 2000) && !prefeitoImageUrl) return res.status(400).json({ error: 'Mayor image must use HTTPS' });
+  let userId = '';
+  const prefeitoUsername = readText(req.body.prefeitoUsername, 80);
+  if (prefeitoUsername) {
+    const matches = Object.values(users).filter(user => user.username && user.username.toLocaleLowerCase('pt-BR') === prefeitoUsername.toLocaleLowerCase('pt-BR'));
+    if (matches.length !== 1) return res.status(404).json({ error: 'Discord mayor not found or ambiguous; the user must log in first' });
+    if (userCompany[matches[0].id] !== company.id) return res.status(403).json({ error: 'The Discord mayor must be linked to this city hall' });
+    userId = matches[0].id;
+  }
+  company.officials = { presidente: { name: presidenteName, imageUrl: presidenteImageUrl }, prefeito: { name: prefeitoName, imageUrl: prefeitoImageUrl, userId } };
+  saveData();
+  return res.json({ ok: true });
 });
 
 function publicComment(comment) {

@@ -18,7 +18,17 @@
     const page = document.getElementById('page'); let company, isAdmin = false, currentUser = null, members = [], canManage = false;
     const esc = value => { const el=document.createElement('span'); el.textContent=value||''; return el.innerHTML; };
     const initials = name => String(name||'E').split(/\s+/).filter(Boolean).slice(0,2).map(word=>word[0]).join('').toUpperCase();
+    function officialCard(label, official, linked){ const image=official.imageUrl?`<img src="${esc(official.imageUrl)}" alt="">`:esc(initials(official.name)); return `<article class="member"><div class="member-avatar">${image}</div><b>${esc(official.name)}</b><span>${label}${linked?' · Vinculado ao Discord':''}</span></article>`; }
+    function mountOfficials(){
+      let section=document.getElementById('teamSection'); const officials=company.officials||{}, president=officials.presidente||{}, mayor=officials.prefeito||{};
+      if(!section){ section=document.createElement('section');section.id='teamSection';section.className='card team';const sidebar=page.querySelector('.layout > aside'),infoCard=sidebar.querySelector('.card');infoCard.querySelector('h2')?.remove();infoCard.querySelector('.facts')?.remove();sidebar.insertBefore(section,sidebar.firstChild); }
+      section.innerHTML=`<h2>Agentes e Servidores Públicos</h2><p class="notice">Quadro institucional da prefeitura.</p><div class="team-grid">${officialCard('Presidente',president,false)}${officialCard('Prefeito',mayor,mayor.linked)}</div><div class="member-form" id="officialForm"><input id="presidentName" maxlength="100" placeholder="Nome do Presidente" value="${esc(president.name==='Não informado'?'':president.name)}"><input id="presidentImage" placeholder="Imagem HTTPS do Presidente" value="${esc(president.imageUrl||'')}"><input id="mayorName" maxlength="100" placeholder="Nome informativo do Prefeito" value="${esc(mayor.linked?'':mayor.name==='Não informado'?'':mayor.name)}"><input id="mayorImage" placeholder="Imagem HTTPS do Prefeito" value="${esc(mayor.linked?'':mayor.imageUrl||'')}"><input id="mayorUsername" maxlength="80" placeholder="Usuário Discord do Prefeito (opcional)" value=""><button id="saveOfficials">Salvar quadro público</button></div>`;
+      document.getElementById('saveOfficials').addEventListener('click',saveOfficials); refreshOfficialControls();
+    }
+    function refreshOfficialControls(){ const form=document.getElementById('officialForm');if(form)form.style.display=canManage?'grid':'none'; }
+    async function saveOfficials(){ const payload={presidenteName:document.getElementById('presidentName').value.trim(),presidenteImageUrl:document.getElementById('presidentImage').value.trim(),prefeitoName:document.getElementById('mayorName').value.trim(),prefeitoImageUrl:document.getElementById('mayorImage').value.trim(),prefeitoUsername:document.getElementById('mayorUsername').value.trim()};const response=await fetch(api(`/api/empresas/${encodeURIComponent(id)}/autoridades`),{method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const data=await response.json();if(!response.ok)return alert(data.error||'Não foi possível salvar o quadro.');const profile=await fetch(api(`/api/empresas/${encodeURIComponent(id)}`),{cache:'no-store'});company=(await profile.json()).company;render();}
     function mountTeam(){
+      if (company.entityType === 'PREFEITURA') { mountOfficials(); return; }
       let section = document.getElementById('teamSection');
       if (!section) {
         section = document.createElement('section'); section.id = 'teamSection'; section.className = 'card team';
@@ -131,6 +141,7 @@
       canManage = isAdmin || Boolean(data.company && String(data.company.id) === String(company.id));
       if (!canManage) { document.getElementById('admin')?.closest('.card')?.remove(); return; }
       document.getElementById('admin') && (document.getElementById('admin').style.display = 'block');
+      refreshOfficialControls();
       installPostEditors();
     }
     const companyAccessWatcher = setInterval(() => { if (company && currentUser) { clearInterval(companyAccessWatcher); resolveCompanyAccess(); } }, 150);
