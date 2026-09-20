@@ -611,6 +611,11 @@ app.post('/api/empresas/:id/solicitar-vinculo', requireAuth, (req, res) => {
   return res.status(201).json({ ok: true, request });
 });
 
+app.get('/api/empresas/:id/vinculo-status', requireAuth, (req, res) => {
+  if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
+  return res.json({ linked: isUserLinkedToCompany(req.user.id, req.params.id), pending: companyLinkRequests.some(item => item.companyId === req.params.id && item.userId === req.user.id) });
+});
+
 app.get('/api/empresas/:id/solicitacoes-vinculo', requireAuth, (req, res) => {
   if (!isAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
   const requests = companyLinkRequests.filter(item => item.companyId === req.params.id && users[item.userId]).map(item => ({ ...item, user: { id: users[item.userId].id, username: users[item.userId].username, avatar: users[item.userId].avatar || null } }));
