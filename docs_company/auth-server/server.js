@@ -367,6 +367,24 @@ app.get('/api/empresas/ranking', (req, res) => {
   return res.json({ companies: ranking });
 });
 
+// Public profile used by the entity social page. Only institutional fields are
+// exposed; account links and internal ownership remain private.
+app.get('/api/empresas/:id', (req, res) => {
+  const company = companies.find(item => item.id === req.params.id);
+  if (!company) return res.status(404).json({ error: 'Company not found' });
+  const ratings = companyRatings.filter(rating => rating.companyId === company.id);
+  const rating = ratings.length ? ratings.reduce((total, item) => total + item.value, 0) / ratings.length : 0;
+  res.set('Cache-Control', 'no-store');
+  return res.json({ company: {
+    id: company.id, name: company.name, entityType: company.entityType || 'EMPRESA',
+    industry: company.industry || 'Não informado', description: company.description || '',
+    logoUrl: company.logoUrl || '', bannerUrl: company.bannerUrl || '',
+    profileTagline: company.profileTagline || '', mediaUrls: Array.isArray(company.mediaUrls) ? company.mediaUrls : [],
+    estimatedNetWorth: Number(company.estimatedNetWorth) || 0,
+    rating, ratingCount: ratings.length
+  }});
+});
+
 app.get('/api/config/solucoes-imagens', (req, res) => {
   res.set('Cache-Control', 'no-store');
   res.json({ images: serviceImages });
@@ -421,6 +439,20 @@ app.patch('/api/empresas/:id', requireAuth, (req, res) => {
   company.industry = readText(req.body.industry, 100) || 'Não informado';
   company.description = readText(req.body.description, 3000);
   company.logoUrl = logoUrl;
+  const bannerUrl = readImageUrl(req.body.bannerUrl);
+  if (readText(req.body.bannerUrl, 2000) && !bannerUrl) return res.status(400).json({ error: 'Banner URL must use HTTPS' });
+  company.bannerUrl = bannerUrl;
+  company.profileTagline = readText(req.body.profileTagline, 180);
+  if (req.body.mediaUrls !== undefined) {
+    if (!Array.isArray(req.body.mediaUrls) || req.body.mediaUrls.length > 8) return res.status(400).json({ error: 'mediaUrls must contain up to 8 URLs' });
+    const mediaUrls = [];
+    for (const value of req.body.mediaUrls) {
+      const mediaUrl = readImageUrl(value);
+      if (readText(value, 2000) && !mediaUrl) return res.status(400).json({ error: 'Media URLs must use HTTPS' });
+      if (mediaUrl) mediaUrls.push(mediaUrl);
+    }
+    company.mediaUrls = mediaUrls;
+  }
   company.estimatedNetWorth = readMoney(req.body.estimatedNetWorth);
   contracts.filter(contract => contract.companyId === company.id).forEach(contract => { contract.orgao = name; });
   saveData();
