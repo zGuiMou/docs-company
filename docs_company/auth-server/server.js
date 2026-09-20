@@ -632,6 +632,14 @@ app.post('/api/empresas/:id/solicitacoes-vinculo/:requestId/aprovar', requireAut
   return res.json({ ok: true });
 });
 
+app.delete('/api/empresas/:id/solicitacoes-vinculo/:requestId', requireAuth, (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
+  const index = companyLinkRequests.findIndex(item => item.id === req.params.requestId && item.companyId === req.params.id);
+  if (index === -1) return res.status(404).json({ error: 'Link request not found' });
+  companyLinkRequests.splice(index, 1); saveData();
+  return res.json({ ok: true });
+});
+
 // Create a contract (only authenticated users linked to a company)
 app.post('/api/contratos', requireAuth, (req, res) => {
   try{
