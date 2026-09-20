@@ -190,6 +190,7 @@ const contracts = [];
 const deletedStaticContractIds = [];
 const companyComments = [];
 const companyRatings = [];
+const companyMembers = [];
 const serviceImages = {};
 const serviceTexts = {};
 let supabaseReady = false;
@@ -218,6 +219,7 @@ function loadData() {
     if (Array.isArray(stored.deletedStaticContractIds)) deletedStaticContractIds.push(...stored.deletedStaticContractIds);
     if (Array.isArray(stored.companyComments)) companyComments.push(...stored.companyComments);
     if (Array.isArray(stored.companyRatings)) companyRatings.push(...stored.companyRatings);
+    if (Array.isArray(stored.companyMembers)) companyMembers.push(...stored.companyMembers);
     if (stored.serviceImages && typeof stored.serviceImages === 'object') Object.assign(serviceImages, stored.serviceImages);
     if (stored.serviceTexts && typeof stored.serviceTexts === 'object') Object.assign(serviceTexts, stored.serviceTexts);
     let migrated = false;
@@ -239,7 +241,7 @@ function loadData() {
 }
 
 function getDataSnapshot() {
-  return { companies, userCompany, users, contracts, proposals, deletedStaticContractIds, companyComments, companyRatings, serviceImages, serviceTexts };
+  return { companies, userCompany, users, contracts, proposals, deletedStaticContractIds, companyComments, companyRatings, companyMembers, serviceImages, serviceTexts };
 }
 
 function saveData() {
@@ -258,6 +260,7 @@ function replaceDataFromStore(stored) {
   deletedStaticContractIds.splice(0, deletedStaticContractIds.length, ...(Array.isArray(stored.deletedStaticContractIds) ? stored.deletedStaticContractIds : []));
   companyComments.splice(0, companyComments.length, ...(Array.isArray(stored.companyComments) ? stored.companyComments : []));
   companyRatings.splice(0, companyRatings.length, ...(Array.isArray(stored.companyRatings) ? stored.companyRatings : []));
+  companyMembers.splice(0, companyMembers.length, ...(Array.isArray(stored.companyMembers) ? stored.companyMembers : []));
   Object.keys(userCompany).forEach(key => delete userCompany[key]); Object.assign(userCompany, stored.userCompany || {});
   Object.keys(users).forEach(key => delete users[key]); Object.assign(users, stored.users || {});
   Object.keys(serviceImages).forEach(key => delete serviceImages[key]); Object.assign(serviceImages, stored.serviceImages || {});
@@ -469,6 +472,7 @@ app.delete('/api/empresas/:id', requireAuth, (req, res) => {
   for (let index = proposals.length - 1; index >= 0; index -= 1) if (contractIds.has(proposals[index].contractId)) proposals.splice(index, 1);
   for (let index = companyComments.length - 1; index >= 0; index -= 1) if (companyComments[index].companyId === company.id) companyComments.splice(index, 1);
   for (let index = companyRatings.length - 1; index >= 0; index -= 1) if (companyRatings[index].companyId === company.id) companyRatings.splice(index, 1);
+  for (let index = companyMembers.length - 1; index >= 0; index -= 1) if (companyMembers[index].companyId === company.id) companyMembers.splice(index, 1);
   Object.keys(userCompany).forEach(userId => { if (userCompany[userId] === company.id) delete userCompany[userId]; });
   saveData();
   return res.json({ ok: true, deletedCompany: { id: company.id, name: company.name } });
@@ -617,6 +621,35 @@ app.get('/api/bot/entidades', requireBotApiKey, (req, res) => {
   companies.forEach((company) => { if (company.name) names.add(company.name); });
   contracts.forEach((contract) => { if (contract.orgao) names.add(contract.orgao); });
   res.json({ entities: [...names].sort((a, b) => a.localeCompare(b, 'pt-BR')) });
+});
+
+app.get('/api/empresas/:id/colaboradores', (req, res) => {
+  if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
+  const members = companyMembers.filter(member => member.companyId === req.params.id)
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+  res.set('Cache-Control', 'no-store');
+  return res.json({ members });
+});
+
+app.post('/api/empresas/:id/colaboradores', requireAuth, (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
+  if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
+  const name = readText(req.body.name, 100);
+  const role = readText(req.body.role, 100);
+  if (!name || !role) return res.status(400).json({ error: 'Name and role are required' });
+  const member = { id: crypto.randomBytes(8).toString('hex'), companyId: req.params.id, name, role, discord: readText(req.body.discord, 100) };
+  companyMembers.push(member);
+  saveData();
+  return res.status(201).json({ ok: true, member });
+});
+
+app.delete('/api/empresas/:companyId/colaboradores/:memberId', requireAuth, (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
+  const index = companyMembers.findIndex(member => member.companyId === req.params.companyId && member.id === req.params.memberId);
+  if (index === -1) return res.status(404).json({ error: 'Member not found' });
+  companyMembers.splice(index, 1);
+  saveData();
+  return res.json({ ok: true });
 });
 app.get('/api/bot/contratos', requireBotApiKey, (req, res) => res.json({ contracts: [...contracts].sort((a, b) => b.id - a.id).map(botContractView) }));
 app.get('/api/bot/contratos/:id', requireBotApiKey, (req, res) => {
