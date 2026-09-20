@@ -479,7 +479,10 @@ app.delete('/api/empresas/:id', requireAuth, (req, res) => {
 });
 
 app.get('/api/empresas/:id/comentarios', (req, res) => {
-  const comments = companyComments.filter(comment => comment.companyId === req.params.id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const comments = companyComments.filter(comment => comment.companyId === req.params.id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map(comment => ({
+    ...comment,
+    user: users[comment.user.id] ? { id: users[comment.user.id].id, username: users[comment.user.id].username, avatar: users[comment.user.id].avatar || null } : comment.user
+  }));
   return res.json({ comments });
 });
 
@@ -506,7 +509,10 @@ app.post('/api/empresas/:id/comentarios', requireAuth, (req, res) => {
   if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
   const body = readText(req.body.body, 1500);
   if (!body) return res.status(400).json({ error: 'Comment is required' });
-  const comment = { id: crypto.randomBytes(8).toString('hex'), companyId: req.params.id, body, user: { id: req.user.id, username: req.user.username }, createdAt: new Date().toISOString() };
+  const imageUrl = readImageUrl(req.body.imageUrl);
+  if (readText(req.body.imageUrl, 2000) && !imageUrl) return res.status(400).json({ error: 'Image URL must use HTTPS' });
+  if (imageUrl && !isAdmin(req)) return res.status(403).json({ error: 'Only administrators can attach community images' });
+  const comment = { id: crypto.randomBytes(8).toString('hex'), companyId: req.params.id, body, imageUrl, user: { id: req.user.id, username: req.user.username, avatar: req.user.avatar || null }, createdAt: new Date().toISOString() };
   companyComments.push(comment);
   saveData();
   return res.json({ ok: true, comment });
@@ -625,8 +631,11 @@ app.get('/api/bot/entidades', requireBotApiKey, (req, res) => {
 
 app.get('/api/empresas/:id/colaboradores', (req, res) => {
   if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
-  const members = companyMembers.filter(member => member.companyId === req.params.id)
-    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+  // A visible member must be an account actually linked to this company.
+  const members = companyMembers
+    .filter(member => member.companyId === req.params.id && member.userId && userCompany[member.userId] === req.params.id && users[member.userId])
+    .map(member => ({ id: member.id, role: member.role, user: { id: users[member.userId].id, username: users[member.userId].username, avatar: users[member.userId].avatar || null } }))
+    .sort((a, b) => a.user.username.localeCompare(b.user.username, 'pt-BR'));
   res.set('Cache-Control', 'no-store');
   return res.json({ members });
 });
@@ -634,10 +643,15 @@ app.get('/api/empresas/:id/colaboradores', (req, res) => {
 app.post('/api/empresas/:id/colaboradores', requireAuth, (req, res) => {
   if (!isAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
   if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
-  const name = readText(req.body.name, 100);
   const role = readText(req.body.role, 100);
-  if (!name || !role) return res.status(400).json({ error: 'Name and role are required' });
-  const member = { id: crypto.randomBytes(8).toString('hex'), companyId: req.params.id, name, role, discord: readText(req.body.discord, 100) };
+  const username = readText(req.body.username, 80);
+  if (!username || !role) return res.status(400).json({ error: 'Discord username and role are required' });
+  const matches = Object.values(users).filter(user => user.username && user.username.toLocaleLowerCase('pt-BR') === username.toLocaleLowerCase('pt-BR'));
+  if (matches.length !== 1) return res.status(404).json({ error: 'Discord user not found or ambiguous; the user must log in first' });
+  const user = matches[0];
+  if (userCompany[user.id] !== req.params.id) return res.status(403).json({ error: 'This Discord user is not linked to this company' });
+  if (companyMembers.some(member => member.companyId === req.params.id && member.userId === user.id)) return res.status(409).json({ error: 'This user is already in the company board' });
+  const member = { id: crypto.randomBytes(8).toString('hex'), companyId: req.params.id, userId: user.id, role };
   companyMembers.push(member);
   saveData();
   return res.status(201).json({ ok: true, member });
