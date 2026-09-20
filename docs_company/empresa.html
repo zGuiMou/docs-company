@@ -15,7 +15,7 @@
   <script src="runtime-api.js"></script>
   <script>
     const id = new URLSearchParams(location.search).get('id');
-    const page = document.getElementById('page'); let company, isAdmin = false, currentUser = null, members = [];
+    const page = document.getElementById('page'); let company, isAdmin = false, currentUser = null, members = [], canManage = false;
     const esc = value => { const el=document.createElement('span'); el.textContent=value||''; return el.innerHTML; };
     const initials = name => String(name||'E').split(/\s+/).filter(Boolean).slice(0,2).map(word=>word[0]).join('').toUpperCase();
     function mountTeam(){
@@ -96,6 +96,36 @@
       const avatar = currentUser.avatar ? `https://cdn.discordapp.com/avatars/${currentUser.id}/${currentUser.avatar}.${currentUser.avatar.startsWith('a_') ? 'gif' : 'png'}?size=128` : '';
       auth.innerHTML = `<div class="profile-user-pill"><span class="profile-user-avatar">${avatar ? `<img src="${avatar}" alt="">` : esc(initials(currentUser.username))}</span><span>${esc(currentUser.username)}</span><a class="profile-logout" href="/auth/logout">Sair</a></div>`;
     }
+    function installPostEditors(){
+      if (!canManage) return;
+      document.querySelectorAll('[id^="postComment-"]').forEach(field => {
+        const postId = field.id.slice('postComment-'.length), article = field.closest('article.comment');
+        if (!article || article.querySelector('[data-edit-post]')) return;
+        const button = document.createElement('button'); button.type = 'button'; button.textContent = 'Editar post'; button.dataset.editPost = postId;
+        button.addEventListener('click', async () => {
+          const body = prompt('Mensagem do post:', article.querySelector('p')?.textContent || '');
+          if (body === null) return;
+          const imageUrl = prompt('URL HTTPS da imagem:', article.querySelector(':scope > img')?.src || '');
+          if (!imageUrl) return;
+          const response = await fetch(api(`/api/posts/${encodeURIComponent(postId)}`), { method:'PATCH', credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify({body,imageUrl}) });
+          const data = await response.json(); if (!response.ok) return alert(data.error || 'Não foi possível editar o post.'); loadComments();
+        });
+        article.append(button);
+      });
+    }
+    async function resolveCompanyAccess(){
+      if (!currentUser || !company) return;
+      const response = await fetch(api('/api/my-company'), { credentials:'include' });
+      const data = await response.json();
+      canManage = isAdmin || Boolean(data.company && String(data.company.id) === String(company.id));
+      if (!canManage) return;
+      document.getElementById('admin') && (document.getElementById('admin').style.display = 'block');
+      if (!isAdmin) ['tagline', 'logoUrl', 'bannerUrl'].forEach(fieldId => document.getElementById(fieldId)?.closest('label')?.remove());
+      installPostEditors();
+    }
+    const companyAccessWatcher = setInterval(() => { if (company && currentUser) { clearInterval(companyAccessWatcher); resolveCompanyAccess(); } }, 150);
+    const postEditorWatcher = setInterval(installPostEditors, 500);
+    async function saveProfile(){ const payload={name:company.name,entityType:company.entityType,industry:company.industry,estimatedNetWorth:company.estimatedNetWorth,profileTagline:document.getElementById('tagline')?.value.trim() || company.profileTagline,description:document.getElementById('description')?.value.trim() || '',logoUrl:document.getElementById('logoUrl')?.value.trim() || company.logoUrl,bannerUrl:document.getElementById('bannerUrl')?.value.trim() || company.bannerUrl}; const response=await fetch(api(`/api/empresas/${encodeURIComponent(id)}`),{method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); const data=await response.json(); if(!response.ok)return alert(data.error||'Não foi possível salvar.'); company=data.company;render(); }
   </script>
 </body>
 </html>

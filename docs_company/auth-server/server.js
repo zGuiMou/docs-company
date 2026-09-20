@@ -301,6 +301,10 @@ function isAdmin(req){
   return Boolean(ADMIN_ID && user && String(user.id) === String(ADMIN_ID));
 }
 
+function canManageCompany(req, companyId) {
+  return isAdmin(req) || Boolean(req.user && userCompany[req.user.id] === companyId);
+}
+
 // Create a proposal
 app.post('/api/propostas', requireAuth, (req, res) => {
   try {
@@ -430,9 +434,17 @@ app.patch('/api/config/solucoes-textos', requireAuth, (req, res) => {
 });
 
 app.patch('/api/empresas/:id', requireAuth, (req, res) => {
-  if (!isAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
   const company = companies.find(item => item.id === req.params.id);
   if (!company) return res.status(404).json({ error: 'Company not found' });
+  if (!canManageCompany(req, company.id)) return res.status(403).json({ error: 'Forbidden' });
+  // Linked company users may edit institutional copy, while only the platform
+  // administrator can change ownership-sensitive company fields.
+  if (!isAdmin(req)) {
+    company.description = readText(req.body.description, 3000);
+    company.profileTagline = readText(req.body.profileTagline, 180);
+    saveData();
+    return res.json({ ok: true, company });
+  }
   const name = readText(req.body.name, 120);
   if (!name) return res.status(400).json({ error: 'Company name is required' });
   const logoUrl = readImageUrl(req.body.logoUrl);
@@ -650,14 +662,26 @@ app.get('/api/empresas/:id/posts', (req, res) => {
 });
 
 app.post('/api/empresas/:id/posts', requireAuth, (req, res) => {
-  if (!isAdmin(req)) return res.status(403).json({ error: 'Only administrators can publish posts' });
   if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
+  if (!isAdmin(req)) return res.status(403).json({ error: 'Only administrators can publish posts' });
   const body = readText(req.body.body, 1500);
   const imageUrl = readImageUrl(req.body.imageUrl);
   if (!body || !imageUrl) return res.status(400).json({ error: 'A post requires a message and an HTTPS image URL' });
   const post = { id: crypto.randomBytes(8).toString('hex'), type: 'post', companyId: req.params.id, body, imageUrl, user: { id: req.user.id, username: req.user.username, avatar: req.user.avatar || null }, createdAt: new Date().toISOString() };
   companyComments.push(post); saveData();
   return res.status(201).json({ ok: true, post: publicComment(post) });
+});
+
+app.patch('/api/posts/:id', requireAuth, (req, res) => {
+  const post = companyComments.find(item => item.id === req.params.id && item.type === 'post');
+  if (!post) return res.status(404).json({ error: 'Post not found' });
+  if (!canManageCompany(req, post.companyId)) return res.status(403).json({ error: 'Only linked company users can edit posts' });
+  const body = readText(req.body.body, 1500);
+  const imageUrl = readImageUrl(req.body.imageUrl);
+  if (!body || !imageUrl) return res.status(400).json({ error: 'A post requires a message and an HTTPS image URL' });
+  post.body = body; post.imageUrl = imageUrl; post.updatedAt = new Date().toISOString();
+  saveData();
+  return res.json({ ok: true, post: publicComment(post) });
 });
 
 app.post('/api/posts/:id/comentarios', requireAuth, (req, res) => {
