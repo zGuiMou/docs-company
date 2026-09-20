@@ -18,7 +18,15 @@
     return originalFetch(resource, options);
   };
 
-  document.querySelectorAll(`a[href^="${localApi}"]`).forEach(link => {
-    link.href = link.getAttribute('href').slice(localApi.length) || '/';
-  });
+  const normalizeLink = link => {
+    const href = link.getAttribute('href');
+    if (href && href.startsWith(localApi)) link.href = href.slice(localApi.length) || '/';
+  };
+  document.querySelectorAll('a[href]').forEach(normalizeLink);
+  // Login/logout buttons are created after authentication checks on several pages.
+  new MutationObserver(records => records.forEach(record => record.addedNodes.forEach(node => {
+    if (node.nodeType !== Node.ELEMENT_NODE) return;
+    if (node.matches?.('a[href]')) normalizeLink(node);
+    node.querySelectorAll?.('a[href]').forEach(normalizeLink);
+  }))).observe(document.documentElement, { childList: true, subtree: true });
 })();
