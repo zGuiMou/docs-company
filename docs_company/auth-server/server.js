@@ -190,6 +190,7 @@ const contracts = [];
 const deletedStaticContractIds = [];
 const companyComments = [];
 const companyMembers = [];
+const companyLinkRequests = [];
 const serviceImages = {};
 const serviceTexts = {};
 let supabaseReady = false;
@@ -218,6 +219,7 @@ function loadData() {
     if (Array.isArray(stored.deletedStaticContractIds)) deletedStaticContractIds.push(...stored.deletedStaticContractIds);
     if (Array.isArray(stored.companyComments)) companyComments.push(...stored.companyComments);
     if (Array.isArray(stored.companyMembers)) companyMembers.push(...stored.companyMembers);
+    if (Array.isArray(stored.companyLinkRequests)) companyLinkRequests.push(...stored.companyLinkRequests);
     if (stored.serviceImages && typeof stored.serviceImages === 'object') Object.assign(serviceImages, stored.serviceImages);
     if (stored.serviceTexts && typeof stored.serviceTexts === 'object') Object.assign(serviceTexts, stored.serviceTexts);
     let migrated = false;
@@ -239,7 +241,7 @@ function loadData() {
 }
 
 function getDataSnapshot() {
-  return { companies, userCompany, users, contracts, proposals, deletedStaticContractIds, companyComments, companyMembers, serviceImages, serviceTexts };
+  return { companies, userCompany, users, contracts, proposals, deletedStaticContractIds, companyComments, companyMembers, companyLinkRequests, serviceImages, serviceTexts };
 }
 
 function saveData() {
@@ -258,6 +260,7 @@ function replaceDataFromStore(stored) {
   deletedStaticContractIds.splice(0, deletedStaticContractIds.length, ...(Array.isArray(stored.deletedStaticContractIds) ? stored.deletedStaticContractIds : []));
   companyComments.splice(0, companyComments.length, ...(Array.isArray(stored.companyComments) ? stored.companyComments : []));
   companyMembers.splice(0, companyMembers.length, ...(Array.isArray(stored.companyMembers) ? stored.companyMembers : []));
+  companyLinkRequests.splice(0, companyLinkRequests.length, ...(Array.isArray(stored.companyLinkRequests) ? stored.companyLinkRequests : []));
   Object.keys(userCompany).forEach(key => delete userCompany[key]); Object.assign(userCompany, stored.userCompany || {});
   Object.keys(users).forEach(key => delete users[key]); Object.assign(users, stored.users || {});
   Object.keys(serviceImages).forEach(key => delete serviceImages[key]); Object.assign(serviceImages, stored.serviceImages || {});
@@ -314,8 +317,12 @@ function readPostMedia(value) {
   } catch { return null; }
 }
 
+function isUserLinkedToCompany(userId, companyId) {
+  return userCompany[userId] === companyId || companyMembers.some(member => member.userId === userId && member.companyId === companyId);
+}
+
 function canManageCompany(req, companyId) {
-  return isAdmin(req) || Boolean(req.user && userCompany[req.user.id] === companyId);
+  return isAdmin(req) || Boolean(req.user && isUserLinkedToCompany(req.user.id, companyId));
 }
 
 // Create a proposal
@@ -401,7 +408,7 @@ app.get('/api/empresas/:id', (req, res) => {
   res.set('Cache-Control', 'no-store');
   const savedOfficials = company.officials && typeof company.officials === 'object' ? company.officials : {};
   const savedMayor = savedOfficials.prefeito && typeof savedOfficials.prefeito === 'object' ? savedOfficials.prefeito : {};
-  const linkedMayor = savedMayor.userId && userCompany[savedMayor.userId] === company.id ? users[savedMayor.userId] : null;
+  const linkedMayor = savedMayor.userId && isUserLinkedToCompany(savedMayor.userId, company.id) ? users[savedMayor.userId] : null;
   return res.json({ company: {
     id: company.id, name: company.name, entityType: company.entityType === 'GOVERNO' ? 'PREFEITURA' : company.entityType || 'EMPRESA',
     industry: company.industry || 'Não informado', description: company.description || '',
@@ -514,6 +521,7 @@ app.delete('/api/empresas/:id', requireAuth, (req, res) => {
   for (let index = proposals.length - 1; index >= 0; index -= 1) if (contractIds.has(proposals[index].contractId)) proposals.splice(index, 1);
   for (let index = companyComments.length - 1; index >= 0; index -= 1) if (companyComments[index].companyId === company.id) companyComments.splice(index, 1);
   for (let index = companyMembers.length - 1; index >= 0; index -= 1) if (companyMembers[index].companyId === company.id) companyMembers.splice(index, 1);
+  for (let index = companyLinkRequests.length - 1; index >= 0; index -= 1) if (companyLinkRequests[index].companyId === company.id) companyLinkRequests.splice(index, 1);
   Object.keys(userCompany).forEach(userId => { if (userCompany[userId] === company.id) delete userCompany[userId]; });
   saveData();
   return res.json({ ok: true, deletedCompany: { id: company.id, name: company.name } });
@@ -588,10 +596,35 @@ app.post('/api/users/:id/link-company', (req, res) => {
 // Get my company for authenticated user
 app.get('/api/my-company', (req, res) => {
   const user = getCurrentUser(req);
-  if (!user) return res.json({ company: null });
-  const cid = userCompany[user.id] || null;
-  const comp = companies.find(c=>c.id===cid) || null;
-  return res.json({ company: comp });
+  if (!user) return res.json({ company: null, companies: [] });
+  const linkedCompanies = companies.filter(company => isUserLinkedToCompany(user.id, company.id));
+  return res.json({ company: linkedCompanies[0] || null, companies: linkedCompanies });
+});
+
+// A Discord user can request access from each entity profile. Global admins approve it.
+app.post('/api/empresas/:id/solicitar-vinculo', requireAuth, (req, res) => {
+  if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
+  if (isUserLinkedToCompany(req.user.id, req.params.id)) return res.status(409).json({ error: 'You are already linked to this company' });
+  if (companyLinkRequests.some(item => item.companyId === req.params.id && item.userId === req.user.id)) return res.status(409).json({ error: 'A link request is already pending' });
+  const request = { id: crypto.randomBytes(8).toString('hex'), companyId: req.params.id, userId: req.user.id, createdAt: new Date().toISOString() };
+  companyLinkRequests.push(request); saveData();
+  return res.status(201).json({ ok: true, request });
+});
+
+app.get('/api/empresas/:id/solicitacoes-vinculo', requireAuth, (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
+  const requests = companyLinkRequests.filter(item => item.companyId === req.params.id && users[item.userId]).map(item => ({ ...item, user: { id: users[item.userId].id, username: users[item.userId].username, avatar: users[item.userId].avatar || null } }));
+  return res.json({ requests });
+});
+
+app.post('/api/empresas/:id/solicitacoes-vinculo/:requestId/aprovar', requireAuth, (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
+  const index = companyLinkRequests.findIndex(item => item.id === req.params.requestId && item.companyId === req.params.id);
+  if (index === -1) return res.status(404).json({ error: 'Link request not found' });
+  const [request] = companyLinkRequests.splice(index, 1);
+  if (!isUserLinkedToCompany(request.userId, request.companyId)) companyMembers.push({ id: crypto.randomBytes(8).toString('hex'), companyId: request.companyId, userId: request.userId, role: 'Colaborador', linkedAt: new Date().toISOString() });
+  saveData();
+  return res.json({ ok: true });
 });
 
 // Create a contract (only authenticated users linked to a company)
@@ -673,7 +706,7 @@ app.patch('/api/empresas/:id/autoridades', requireAuth, (req, res) => {
   if (prefeitoUsername) {
     const matches = Object.values(users).filter(user => user.username && user.username.toLocaleLowerCase('pt-BR') === prefeitoUsername.toLocaleLowerCase('pt-BR'));
     if (matches.length !== 1) return res.status(404).json({ error: 'Discord mayor not found or ambiguous; the user must log in first' });
-    if (userCompany[matches[0].id] !== company.id) return res.status(403).json({ error: 'The Discord mayor must be linked to this city hall' });
+    if (!isUserLinkedToCompany(matches[0].id, company.id)) return res.status(403).json({ error: 'The Discord mayor must be linked to this city hall' });
     userId = matches[0].id;
   }
   company.officials = { presidente: { name: presidenteName, imageUrl: presidenteImageUrl }, prefeito: { name: prefeitoName, imageUrl: prefeitoImageUrl, userId } };
@@ -776,7 +809,7 @@ app.get('/api/empresas/:id/colaboradores', (req, res) => {
   if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
   // A visible member must be an account actually linked to this company.
   const members = companyMembers
-    .filter(member => member.companyId === req.params.id && member.userId && userCompany[member.userId] === req.params.id && users[member.userId])
+    .filter(member => member.companyId === req.params.id && member.userId && isUserLinkedToCompany(member.userId, req.params.id) && users[member.userId])
     .map(member => ({ id: member.id, role: member.role, user: { id: users[member.userId].id, username: users[member.userId].username, avatar: users[member.userId].avatar || null } }))
     .sort((a, b) => a.user.username.localeCompare(b.user.username, 'pt-BR'));
   res.set('Cache-Control', 'no-store');
@@ -792,7 +825,7 @@ app.post('/api/empresas/:id/colaboradores', requireAuth, (req, res) => {
   const matches = Object.values(users).filter(user => user.username && user.username.toLocaleLowerCase('pt-BR') === username.toLocaleLowerCase('pt-BR'));
   if (matches.length !== 1) return res.status(404).json({ error: 'Discord user not found or ambiguous; the user must log in first' });
   const user = matches[0];
-  if (userCompany[user.id] !== req.params.id) return res.status(403).json({ error: 'This Discord user is not linked to this company' });
+  if (!isUserLinkedToCompany(user.id, req.params.id)) return res.status(403).json({ error: 'This Discord user is not linked to this company' });
   if (companyMembers.some(member => member.companyId === req.params.id && member.userId === user.id)) return res.status(409).json({ error: 'This user is already in the company board' });
   const member = { id: crypto.randomBytes(8).toString('hex'), companyId: req.params.id, userId: user.id, role };
   companyMembers.push(member);
