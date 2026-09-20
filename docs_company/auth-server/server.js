@@ -391,7 +391,7 @@ app.get('/api/empresas/ranking', (req, res) => {
       industry: company.industry || 'Não informado',
       description: company.description || '',
       logoUrl: company.logoUrl || '',
-      rating: ratings.length ? ratings.reduce((total, rating) => total + rating.value, 0) / ratings.length : 0,
+      rating: ratings.length ? ratings.reduce((total, rating) => total + Number(rating.rating), 0) / ratings.length : 0,
       ratingCount: ratings.length,
     };
   });
@@ -404,7 +404,7 @@ app.get('/api/empresas/:id', (req, res) => {
   const company = companies.find(item => item.id === req.params.id);
   if (!company) return res.status(404).json({ error: 'Company not found' });
   const ratings = getCompanyReviews(company.id);
-  const rating = ratings.length ? ratings.reduce((total, item) => total + item.value, 0) / ratings.length : 0;
+  const rating = ratings.length ? ratings.reduce((total, item) => total + Number(item.rating), 0) / ratings.length : 0;
   res.set('Cache-Control', 'no-store');
   const savedOfficials = company.officials && typeof company.officials === 'object' ? company.officials : {};
   const savedMayor = savedOfficials.prefeito && typeof savedOfficials.prefeito === 'object' ? savedOfficials.prefeito : {};
