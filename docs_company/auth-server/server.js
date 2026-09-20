@@ -189,7 +189,6 @@ const users = {}; // map userId -> most recent Discord profile
 const contracts = [];
 const deletedStaticContractIds = [];
 const companyComments = [];
-const companyRatings = [];
 const companyMembers = [];
 const serviceImages = {};
 const serviceTexts = {};
@@ -218,7 +217,6 @@ function loadData() {
     if (stored.users && typeof stored.users === 'object') Object.assign(users, stored.users);
     if (Array.isArray(stored.deletedStaticContractIds)) deletedStaticContractIds.push(...stored.deletedStaticContractIds);
     if (Array.isArray(stored.companyComments)) companyComments.push(...stored.companyComments);
-    if (Array.isArray(stored.companyRatings)) companyRatings.push(...stored.companyRatings);
     if (Array.isArray(stored.companyMembers)) companyMembers.push(...stored.companyMembers);
     if (stored.serviceImages && typeof stored.serviceImages === 'object') Object.assign(serviceImages, stored.serviceImages);
     if (stored.serviceTexts && typeof stored.serviceTexts === 'object') Object.assign(serviceTexts, stored.serviceTexts);
@@ -241,7 +239,7 @@ function loadData() {
 }
 
 function getDataSnapshot() {
-  return { companies, userCompany, users, contracts, proposals, deletedStaticContractIds, companyComments, companyRatings, companyMembers, serviceImages, serviceTexts };
+  return { companies, userCompany, users, contracts, proposals, deletedStaticContractIds, companyComments, companyMembers, serviceImages, serviceTexts };
 }
 
 function saveData() {
@@ -259,7 +257,6 @@ function replaceDataFromStore(stored) {
   proposals.splice(0, proposals.length, ...(Array.isArray(stored.proposals) ? stored.proposals : []));
   deletedStaticContractIds.splice(0, deletedStaticContractIds.length, ...(Array.isArray(stored.deletedStaticContractIds) ? stored.deletedStaticContractIds : []));
   companyComments.splice(0, companyComments.length, ...(Array.isArray(stored.companyComments) ? stored.companyComments : []));
-  companyRatings.splice(0, companyRatings.length, ...(Array.isArray(stored.companyRatings) ? stored.companyRatings : []));
   companyMembers.splice(0, companyMembers.length, ...(Array.isArray(stored.companyMembers) ? stored.companyMembers : []));
   Object.keys(userCompany).forEach(key => delete userCompany[key]); Object.assign(userCompany, stored.userCompany || {});
   Object.keys(users).forEach(key => delete users[key]); Object.assign(users, stored.users || {});
@@ -371,11 +368,15 @@ app.post('/api/empresas', (req, res) => {
   return res.json({ ok:true, company: c });
 });
 
+function getCompanyReviews(companyId) {
+  return companyComments.filter(item => item.companyId === companyId && item.type === 'review' && Number.isInteger(Number(item.rating)) && Number(item.rating) >= 1 && Number(item.rating) <= 5);
+}
+
 // Public ranking data: only company names and aggregate contract figures.
 app.get('/api/empresas/ranking', (req, res) => {
   res.set('Cache-Control', 'no-store');
   const ranking = companies.map(company => {
-    const ratings = companyRatings.filter(rating => rating.companyId === company.id);
+    const ratings = getCompanyReviews(company.id);
     return {
       id: company.id,
       name: company.name,
@@ -395,7 +396,7 @@ app.get('/api/empresas/ranking', (req, res) => {
 app.get('/api/empresas/:id', (req, res) => {
   const company = companies.find(item => item.id === req.params.id);
   if (!company) return res.status(404).json({ error: 'Company not found' });
-  const ratings = companyRatings.filter(rating => rating.companyId === company.id);
+  const ratings = getCompanyReviews(company.id);
   const rating = ratings.length ? ratings.reduce((total, item) => total + item.value, 0) / ratings.length : 0;
   res.set('Cache-Control', 'no-store');
   const savedOfficials = company.officials && typeof company.officials === 'object' ? company.officials : {};
@@ -512,7 +513,6 @@ app.delete('/api/empresas/:id', requireAuth, (req, res) => {
   for (let index = contracts.length - 1; index >= 0; index -= 1) if (contractIds.has(contracts[index].id)) contracts.splice(index, 1);
   for (let index = proposals.length - 1; index >= 0; index -= 1) if (contractIds.has(proposals[index].contractId)) proposals.splice(index, 1);
   for (let index = companyComments.length - 1; index >= 0; index -= 1) if (companyComments[index].companyId === company.id) companyComments.splice(index, 1);
-  for (let index = companyRatings.length - 1; index >= 0; index -= 1) if (companyRatings[index].companyId === company.id) companyRatings.splice(index, 1);
   for (let index = companyMembers.length - 1; index >= 0; index -= 1) if (companyMembers[index].companyId === company.id) companyMembers.splice(index, 1);
   Object.keys(userCompany).forEach(userId => { if (userCompany[userId] === company.id) delete userCompany[userId]; });
   saveData();
@@ -525,25 +525,6 @@ app.get('/api/empresas/:id/comentarios', (req, res) => {
     user: users[comment.user.id] ? { id: users[comment.user.id].id, username: users[comment.user.id].username, avatar: users[comment.user.id].avatar || null } : comment.user
   }));
   return res.json({ comments });
-});
-
-app.get('/api/empresas/:id/avaliacoes', (req, res) => {
-  const ratings = companyRatings.filter(rating => rating.companyId === req.params.id);
-  const currentUser = getCurrentUser(req);
-  const myRating = currentUser ? ratings.find(rating => rating.userId === currentUser.id)?.value || null : null;
-  const average = ratings.length ? ratings.reduce((total, rating) => total + rating.value, 0) / ratings.length : 0;
-  return res.json({ average, count: ratings.length, myRating });
-});
-
-app.post('/api/empresas/:id/avaliacoes', requireAuth, (req, res) => {
-  if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
-  const value = Number(req.body.value);
-  if (!Number.isInteger(value) || value < 1 || value > 5) return res.status(400).json({ error: 'Rating must be between 1 and 5' });
-  const existing = companyRatings.find(rating => rating.companyId === req.params.id && rating.userId === req.user.id);
-  if (existing) { existing.value = value; existing.updatedAt = new Date().toISOString(); }
-  else companyRatings.push({ id: crypto.randomBytes(8).toString('hex'), companyId: req.params.id, userId: req.user.id, value, createdAt: new Date().toISOString() });
-  saveData();
-  return res.json({ ok: true });
 });
 
 app.post('/api/empresas/:id/comentarios', requireAuth, (req, res) => {
@@ -707,19 +688,36 @@ function publicComment(comment) {
 
 app.get('/api/empresas/:id/opinioes', (req, res) => {
   if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
-  const comments = companyComments.filter(item => item.companyId === req.params.id && item.type === 'review')
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map(publicComment);
+  const reviews = getCompanyReviews(req.params.id);
+  const comments = reviews.sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt)).map(publicComment);
+  const average = reviews.length ? reviews.reduce((total, review) => total + Number(review.rating), 0) / reviews.length : 0;
+  const currentUser = getCurrentUser(req);
+  const myReview = currentUser ? comments.find(comment => comment.user?.id === currentUser.id) || null : null;
   res.set('Cache-Control', 'no-store');
-  return res.json({ comments });
+  return res.json({ comments, average, count: reviews.length, myReview });
 });
 
 app.post('/api/empresas/:id/opinioes', requireAuth, (req, res) => {
   if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
   const body = readText(req.body.body, 1500);
-  if (!body) return res.status(400).json({ error: 'Comment is required' });
-  const comment = { id: crypto.randomBytes(8).toString('hex'), type: 'review', companyId: req.params.id, body, user: { id: req.user.id, username: req.user.username, avatar: req.user.avatar || null }, createdAt: new Date().toISOString() };
+  const rating = Number(req.body.rating);
+  if (!body || !Number.isInteger(rating) || rating < 1 || rating > 5) return res.status(400).json({ error: 'Uma opinião requer comentário e avaliação de 1 a 5 estrelas.' });
+  const existing = getCompanyReviews(req.params.id).find(review => review.user?.id === req.user.id);
+  if (existing) {
+    existing.body = body; existing.rating = rating; existing.user = { id: req.user.id, username: req.user.username, avatar: req.user.avatar || null }; existing.updatedAt = new Date().toISOString(); saveData();
+    return res.json({ ok: true, updated: true, comment: publicComment(existing) });
+  }
+  const comment = { id: crypto.randomBytes(8).toString('hex'), type: 'review', companyId: req.params.id, body, rating, user: { id: req.user.id, username: req.user.username, avatar: req.user.avatar || null }, createdAt: new Date().toISOString() };
   companyComments.push(comment); saveData();
   return res.status(201).json({ ok: true, comment: publicComment(comment) });
+});
+
+app.delete('/api/opinioes/:id', requireAuth, (req, res) => {
+  const index = companyComments.findIndex(item => item.id === req.params.id && item.type === 'review');
+  if (index === -1) return res.status(404).json({ error: 'Opinion not found' });
+  if (!isAdmin(req)) return res.status(403).json({ error: 'Only moderators can remove opinions' });
+  companyComments.splice(index, 1); saveData();
+  return res.json({ ok: true });
 });
 
 app.get('/api/empresas/:id/posts', (req, res) => {
