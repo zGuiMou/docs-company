@@ -658,6 +658,23 @@ function publicComment(comment) {
   return { ...comment, user: user ? { id: user.id, username: user.username, avatar: user.avatar || null } : comment.user };
 }
 
+app.get('/api/empresas/:id/opinioes', (req, res) => {
+  if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
+  const comments = companyComments.filter(item => item.companyId === req.params.id && item.type === 'review')
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).map(publicComment);
+  res.set('Cache-Control', 'no-store');
+  return res.json({ comments });
+});
+
+app.post('/api/empresas/:id/opinioes', requireAuth, (req, res) => {
+  if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
+  const body = readText(req.body.body, 1500);
+  if (!body) return res.status(400).json({ error: 'Comment is required' });
+  const comment = { id: crypto.randomBytes(8).toString('hex'), type: 'review', companyId: req.params.id, body, user: { id: req.user.id, username: req.user.username, avatar: req.user.avatar || null }, createdAt: new Date().toISOString() };
+  companyComments.push(comment); saveData();
+  return res.status(201).json({ ok: true, comment: publicComment(comment) });
+});
+
 app.get('/api/empresas/:id/posts', (req, res) => {
   if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
   const posts = companyComments.filter(item => item.companyId === req.params.id && item.type === 'post')
