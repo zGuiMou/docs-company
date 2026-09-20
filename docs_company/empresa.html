@@ -27,7 +27,6 @@
         const infoCard = sidebar.querySelector('.card');
         infoCard.querySelector('h2')?.remove();
         infoCard.querySelector('.facts')?.remove();
-        if (!isAdmin) infoCard.remove();
         sidebar.insertBefore(section, sidebar.firstChild);
         document.getElementById('addMember').addEventListener('click', addMember);
       }
@@ -98,6 +97,14 @@
     }
     function installPostEditors(){
       if (!canManage) return;
+      const composer = document.getElementById('commentComposer');
+      if (composer) {
+        composer.style.display = 'block';
+        if (!document.getElementById('communityImageUrl')) {
+          const input = document.createElement('input'); input.id = 'communityImageUrl'; input.placeholder = 'Imagem do post (URL HTTPS obrigatória)'; input.style.marginTop = '8px';
+          composer.querySelector('button').before(input);
+        }
+      }
       document.querySelectorAll('[id^="postComment-"]').forEach(field => {
         const postId = field.id.slice('postComment-'.length), article = field.closest('article.comment');
         if (!article || article.querySelector('[data-edit-post]')) return;
@@ -118,7 +125,7 @@
       const response = await fetch(api('/api/my-company'), { credentials:'include' });
       const data = await response.json();
       canManage = isAdmin || Boolean(data.company && String(data.company.id) === String(company.id));
-      if (!canManage) return;
+      if (!canManage) { document.getElementById('admin')?.closest('.card')?.remove(); return; }
       document.getElementById('admin') && (document.getElementById('admin').style.display = 'block');
       if (!isAdmin) ['tagline', 'logoUrl', 'bannerUrl'].forEach(fieldId => document.getElementById(fieldId)?.closest('label')?.remove());
       installPostEditors();

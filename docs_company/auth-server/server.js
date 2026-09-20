@@ -663,7 +663,7 @@ app.get('/api/empresas/:id/posts', (req, res) => {
 
 app.post('/api/empresas/:id/posts', requireAuth, (req, res) => {
   if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
-  if (!isAdmin(req)) return res.status(403).json({ error: 'Only administrators can publish posts' });
+  if (!canManageCompany(req, req.params.id)) return res.status(403).json({ error: 'Only linked company users can publish posts' });
   const body = readText(req.body.body, 1500);
   const imageUrl = readImageUrl(req.body.imageUrl);
   if (!body || !imageUrl) return res.status(400).json({ error: 'A post requires a message and an HTTPS image URL' });
