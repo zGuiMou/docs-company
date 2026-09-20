@@ -1046,6 +1046,7 @@ app.get('/auth/me', (req, res) => {
 // In production the same Express service delivers the public site and its API.
 // Keeping auth-server private avoids publishing .env and the local backup JSON.
 app.use('/auth-server', (req, res) => res.sendStatus(404));
+app.get('/parceiros.html', (req, res) => res.redirect(301, '/entidades.html'));
 app.use(express.static(path.join(__dirname, '..'), { dotfiles: 'deny' }));
 
 async function startServer() {
