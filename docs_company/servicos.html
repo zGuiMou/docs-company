@@ -8,7 +8,7 @@
     :root{
       --bg:#05070a;--panel:#0a1017;--panel-soft:#0d141b;--text:#f5f7fa;--muted:#97a6b7;--line:rgba(255,255,255,.08);--blue:#5aa6ff;--shadow:0 24px 80px rgba(0,0,0,.28)
     }
-    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at top,rgba(90,166,255,.12),transparent 18%),linear-gradient(180deg,#05070a,#091018 100%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}a{color:inherit;text-decoration:none}article{display:block}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at top,rgba(90,166,255,.12),transparent 18%),linear-gradient(180deg,#05070a,#091018 100%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}a{color:inherit;text-decoration:none}article{display:block}.dynamic-content-loading main{visibility:hidden}
     .nav{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:20;width:min(1120px,calc(100% - 32px));display:flex;align-items:center;justify-content:center;padding:9px 12px;border:1px solid var(--line);background:rgba(5,7,10,.78);backdrop-filter:blur(18px);border-radius:15px;box-shadow:0 18px 40px rgba(0,0,0,.18)}
     .brand-wrap{display:flex;flex-direction:row;align-items:center;gap:10px;position:absolute;left:18px}.brand{display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;letter-spacing:-.06em}.brand-text{display:inline-flex;align-items:flex-start;flex-direction:column;line-height:1}.brand-main{display:inline-flex;align-items:center;letter-spacing:-.06em}.brand-sub{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#aeb8c5;margin-top:4px}.dot{color:var(--blue)}.brand-mark{position:relative;width:48px;height:48px;display:block;transform-style:preserve-3d;transition:transform .25s ease,filter .25s ease;filter:drop-shadow(0 12px 22px rgba(43,102,255,.32));cursor:pointer}.brand-mark svg{width:100%;height:100%;display:block;overflow:visible}.brand-mark .mark-core{fill:#f5f7fa}.brand-mark .mark-cut{fill:#080c11}.brand-mark .mark-dot{fill:#2c6df6;filter:drop-shadow(0 0 18px rgba(44,109,246,.9))}.brand-mark:hover{filter:drop-shadow(0 18px 28px rgba(43,102,255,.5))}
     .navlinks{display:flex;gap:3px}.navlinks a{padding:9px 13px;border:1px solid transparent;border-radius:8px;color:#aeb8c5;font-size:13px;transition:.2s}.navlinks a:hover,.navlinks a.active{color:#fff;background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18)}
@@ -33,7 +33,7 @@
     @media(max-width:600px){.nav{top:10px;width:calc(100% - 20px)}.brand{display:none}.navlinks{width:100%;justify-content:center}.navlinks a{padding:8px 7px;font-size:11px}.page-top{padding-left:18px;padding-right:18px}.chapter{padding-left:42px}.journey::before{left:20px}.chapter-marker{left:20px}.chapter-copy{padding:24px 20px}.chapter-copy h2{font-size:31px}.chapter-media,.chapter-media img{min-height:220px;height:220px}}
   </style>
 </head>
-<body>
+<body class="dynamic-content-loading">
   <header class="nav">
     <a class="brand" href="index.html"><span class="brand-wrap"><span class="brand-mark" aria-label="Logo DOCS"><svg viewBox="0 0 120 120" role="img" aria-hidden="true"><path class="mark-core" d="M30 16H62C90 16 108 34 108 60C108 86 90 104 62 104H30V16ZM52 36V84H62C77 84 88 76 88 60C88 44 77 36 62 36H52Z"/><path class="mark-cut" d="M60 38H62C74 38 82 47 82 60C82 73 74 82 62 82H60V38Z"/><circle class="mark-dot" cx="94" cy="90" r="14"/></svg></span><span class="brand-text"><span class="brand-main">DOCS<span class="dot">.</span></span><span class="brand-sub">Company</span></span></span></a>
     <nav class="navlinks">
@@ -165,7 +165,7 @@
     }
     async function loadServiceImages() {
       try {
-        const response = await fetch('http://localhost:3000/api/config/solucoes-imagens');
+        const response = await fetch('http://localhost:3000/api/config/solucoes-imagens', { cache: 'no-store' });
         const data = await response.json();
         Object.entries(data.images || {}).forEach(([key, url]) => applyServiceImage(key, url));
         serviceImageInputs.forEach(input => { input.value = (data.images || {})[input.dataset.imageKey] || ''; });
@@ -173,7 +173,7 @@
     }
     async function loadServiceTexts() {
       try {
-        const response = await fetch('http://localhost:3000/api/config/solucoes-textos');
+        const response = await fetch('http://localhost:3000/api/config/solucoes-textos', { cache: 'no-store' });
         const data = await response.json();
         Object.entries(data.texts || {}).forEach(([key, text]) => applyServiceText(key, text));
         serviceTextInputs.forEach(input => { input.value = (data.texts || {})[input.dataset.textKey] || defaultServiceTexts[input.dataset.textKey] || ''; });
@@ -197,8 +197,9 @@
       alert('Textos e imagens salvos com sucesso.');
       document.getElementById('imageManager').style.display = 'none';
     });
-    loadServiceImages();
-    loadServiceTexts();
+    // The markup contains fallbacks. Reveal it only after saved content loads.
+    Promise.all([loadServiceImages(), loadServiceTexts()])
+      .finally(() => document.body.classList.remove('dynamic-content-loading'));
 
     const brandMark = document.querySelector('.brand-mark');
     if (brandMark) {

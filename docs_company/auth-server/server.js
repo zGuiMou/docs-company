@@ -350,6 +350,7 @@ app.post('/api/empresas', (req, res) => {
 
 // Public ranking data: only company names and aggregate contract figures.
 app.get('/api/empresas/ranking', (req, res) => {
+  res.set('Cache-Control', 'no-store');
   const ranking = companies.map(company => {
     const ratings = companyRatings.filter(rating => rating.companyId === company.id);
     return {
@@ -366,7 +367,10 @@ app.get('/api/empresas/ranking', (req, res) => {
   return res.json({ companies: ranking });
 });
 
-app.get('/api/config/solucoes-imagens', (req, res) => res.json({ images: serviceImages }));
+app.get('/api/config/solucoes-imagens', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json({ images: serviceImages });
+});
 
 app.patch('/api/config/solucoes-imagens', requireAuth, (req, res) => {
   if (!isAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
@@ -384,7 +388,10 @@ app.patch('/api/config/solucoes-imagens', requireAuth, (req, res) => {
   return res.json({ ok: true, images: serviceImages });
 });
 
-app.get('/api/config/solucoes-textos', (req, res) => res.json({ texts: serviceTexts }));
+app.get('/api/config/solucoes-textos', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json({ texts: serviceTexts });
+});
 
 app.patch('/api/config/solucoes-textos', requireAuth, (req, res) => {
   if (!isAdmin(req)) return res.status(403).json({ error: 'Forbidden' });
@@ -636,6 +643,7 @@ app.get('/api/bot/contratos/:id/propostas', requireBotApiKey, (req, res) => {
 });
 // List contracts (for admin/any) - optional
 app.get('/api/contratos', (req, res) => {
+  res.set('Cache-Control', 'no-store');
   return res.json({ contracts, deletedStaticContractIds });
 });
 
