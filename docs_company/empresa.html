@@ -80,6 +80,10 @@
       const postBody = document.getElementById('commentBody');
       if (postBody) postBody.placeholder = 'Publique anúncios, comunicados e notícias para manter sua comunidade sempre informada e conectada.';
       composer?.querySelector('button') && (composer.querySelector('button').textContent = 'Publicar post');
+      if (composer && !composer.dataset.mediaObserver) {
+        composer.dataset.mediaObserver = 'true';
+        new MutationObserver(() => { const media = document.getElementById('communityImageUrl'); if (media) media.placeholder = 'Anexar imagem ou vídeo do YouTube (URL HTTPS)'; }).observe(composer, { childList:true, subtree:true });
+      }
       const notice = document.getElementById('loginNotice');
       if (notice && !notice.dataset.postNotice) {
         notice.dataset.postNotice = 'true';
@@ -101,7 +105,7 @@
       if (composer) {
         composer.style.display = 'block';
         if (!document.getElementById('communityImageUrl')) {
-          const input = document.createElement('input'); input.id = 'communityImageUrl'; input.placeholder = 'Imagem do post (URL HTTPS obrigatória)'; input.style.marginTop = '8px';
+          const input = document.createElement('input'); input.id = 'communityImageUrl'; input.placeholder = 'Anexar imagem ou vídeo do YouTube (URL HTTPS)'; input.style.marginTop = '8px';
           composer.querySelector('button').before(input);
         }
       }

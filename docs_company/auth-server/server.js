@@ -301,6 +301,22 @@ function isAdmin(req){
   return Boolean(ADMIN_ID && user && String(user.id) === String(ADMIN_ID));
 }
 
+function readPostMedia(value) {
+  const url = readImageUrl(value);
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    let videoId = '';
+    if (['www.youtube.com', 'youtube.com', 'm.youtube.com'].includes(parsed.hostname)) {
+      videoId = parsed.searchParams.get('v') || parsed.pathname.match(/^\/(?:shorts|embed)\/([\w-]{11})/)?.[1] || '';
+    } else if (parsed.hostname === 'youtu.be') {
+      videoId = parsed.pathname.split('/').filter(Boolean)[0] || '';
+    }
+    if (/^[\w-]{11}$/.test(videoId)) return { type: 'youtube', url: parsed.toString(), videoId, thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg` };
+    return { type: 'image', url, videoId: '', thumbnailUrl: url };
+  } catch { return null; }
+}
+
 function canManageCompany(req, companyId) {
   return isAdmin(req) || Boolean(req.user && userCompany[req.user.id] === companyId);
 }
@@ -688,9 +704,9 @@ app.post('/api/empresas/:id/posts', requireAuth, (req, res) => {
   if (!companies.some(company => company.id === req.params.id)) return res.status(404).json({ error: 'Company not found' });
   if (!canManageCompany(req, req.params.id)) return res.status(403).json({ error: 'Only linked company users can publish posts' });
   const body = readText(req.body.body, 1500);
-  const imageUrl = readImageUrl(req.body.imageUrl);
-  if (!body || !imageUrl) return res.status(400).json({ error: 'A post requires a message and an HTTPS image URL' });
-  const post = { id: crypto.randomBytes(8).toString('hex'), type: 'post', companyId: req.params.id, body, imageUrl, user: { id: req.user.id, username: req.user.username, avatar: req.user.avatar || null }, createdAt: new Date().toISOString() };
+  const media = readPostMedia(req.body.imageUrl);
+  if (!body || !media) return res.status(400).json({ error: 'A post requires a message and one HTTPS image or YouTube URL' });
+  const post = { id: crypto.randomBytes(8).toString('hex'), type: 'post', companyId: req.params.id, body, imageUrl: media.thumbnailUrl, mediaUrl: media.url, mediaType: media.type, youtubeId: media.videoId, user: { id: req.user.id, username: req.user.username, avatar: req.user.avatar || null }, createdAt: new Date().toISOString() };
   companyComments.push(post); saveData();
   return res.status(201).json({ ok: true, post: publicComment(post) });
 });
@@ -700,9 +716,9 @@ app.patch('/api/posts/:id', requireAuth, (req, res) => {
   if (!post) return res.status(404).json({ error: 'Post not found' });
   if (!canManageCompany(req, post.companyId)) return res.status(403).json({ error: 'Only linked company users can edit posts' });
   const body = readText(req.body.body, 1500);
-  const imageUrl = readImageUrl(req.body.imageUrl);
-  if (!body || !imageUrl) return res.status(400).json({ error: 'A post requires a message and an HTTPS image URL' });
-  post.body = body; post.imageUrl = imageUrl; post.updatedAt = new Date().toISOString();
+  const media = readPostMedia(req.body.imageUrl);
+  if (!body || !media) return res.status(400).json({ error: 'A post requires a message and one HTTPS image or YouTube URL' });
+  post.body = body; post.imageUrl = media.thumbnailUrl; post.mediaUrl = media.url; post.mediaType = media.type; post.youtubeId = media.videoId; post.updatedAt = new Date().toISOString();
   saveData();
   return res.json({ ok: true, post: publicComment(post) });
 });
