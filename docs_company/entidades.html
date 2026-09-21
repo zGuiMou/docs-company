@@ -225,7 +225,7 @@
         const logo = p.logoUrl ? `<img src="${escapeHtml(p.logoUrl)}" alt="">` : escapeHtml(p.initials);
         return `
           <tr>
-            <td class="company-cell"><div class="company-logo">${logo}</div><div><strong><a href="empresa.html?id=${encodeURIComponent(p.id)}">${escapeHtml(p.name)}</a>${p.verified?'<span class="verified-badge" title="Empresa vinculada" aria-label="Empresa vinculada">✓</span>':''}</strong><div style="color:var(--muted);font-size:13px">${escapeHtml(p.category)}</div></div></td>
+            <td class="company-cell"><div class="company-logo">${logo}</div><div><strong><a href="empresa.html?id=${encodeURIComponent(p.id)}">${escapeHtml(p.name)}</a>${p.verified?'<span class="verified-badge" title="Empresa vinculada" aria-label="Empresa vinculada">®</span>':''}</strong><div style="color:var(--muted);font-size:13px">${escapeHtml(p.category)}</div></div></td>
             <td>${p.ratingCount ? `${'★'.repeat(Math.round(p.rating))} ${p.rating.toFixed(1)}` : 'Sem avaliações'}</td>
             <td>${p.ratingCount || 0}</td>
             <td><a class="view-btn" href="empresa.html?id=${encodeURIComponent(p.id)}">Ver perfil</a></td>
