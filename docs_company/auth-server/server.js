@@ -321,6 +321,10 @@ function isUserLinkedToCompany(userId, companyId) {
   return userCompany[userId] === companyId || companyMembers.some(member => member.userId === userId && member.companyId === companyId);
 }
 
+function isCompanyVerified(companyId) {
+  return companyMembers.some(member => member.companyId === companyId && member.userId) || Object.values(userCompany).includes(companyId);
+}
+
 function canManageCompany(req, companyId) {
   return isAdmin(req) || Boolean(req.user && isUserLinkedToCompany(req.user.id, companyId));
 }
@@ -393,6 +397,7 @@ app.get('/api/empresas/ranking', (req, res) => {
       logoUrl: company.logoUrl || '',
       rating: ratings.length ? ratings.reduce((total, rating) => total + Number(rating.rating), 0) / ratings.length : 0,
       ratingCount: ratings.length,
+      verified: isCompanyVerified(company.id),
     };
   });
   return res.json({ companies: ranking });
@@ -419,7 +424,7 @@ app.get('/api/empresas/:id', (req, res) => {
       presidente: { name: readText(savedOfficials.presidente?.name, 100) || 'Não informado', imageUrl: readImageUrl(savedOfficials.presidente?.imageUrl) || '' },
       prefeito: { name: linkedMayor?.username || readText(savedMayor.name, 100) || 'Não informado', imageUrl: linkedMayor?.avatar ? `https://cdn.discordapp.com/avatars/${linkedMayor.id}/${linkedMayor.avatar}.${linkedMayor.avatar.startsWith('a_') ? 'gif' : 'png'}?size=128` : readImageUrl(savedMayor.imageUrl) || '', linked: Boolean(linkedMayor) }
     },
-    rating, ratingCount: ratings.length
+    rating, ratingCount: ratings.length, verified: isCompanyVerified(company.id)
   }});
 });
 
