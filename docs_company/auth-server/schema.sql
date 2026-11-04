@@ -1,6 +1,6 @@
 -- Execute this once in Supabase: SQL Editor > New query > Run.
--- The site server stores its complete state in one private JSONB record. This
--- keeps all existing companies, contracts, comments and settings intact.
+-- The site server stores active sessions and a private legacy archive in one
+-- JSONB record. The archive is not exposed through public API routes.
 create table if not exists public.docs_company_state (
   id text primary key,
   data jsonb not null default '{}'::jsonb,

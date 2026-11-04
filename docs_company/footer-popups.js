@@ -2,7 +2,7 @@
   const content = {
     terms: {
       title: 'Termos de Uso',
-      body: `<p>Este site faz parte do universo de roleplay do Expresso Continental. As informações, empresas, licitações e contratos exibidos são fictícios e destinados exclusivamente à experiência dentro do servidor.</p><p>Ao utilizar a plataforma, você concorda em fornecer informações pertinentes ao roleplay, respeitar as regras do servidor e não utilizar os recursos para prejudicar outros participantes. A Docs. Company pode atualizar ou remover conteúdos e funcionalidades quando necessário.</p>`
+      body: `<p>Este site faz parte do universo de roleplay do <span class="expresso-name">Expresso Continental</span>. Os registros e valores apresentados durante a demonstração são fictícios e destinados exclusivamente à experiência dentro do servidor.</p><p>Ao utilizar a plataforma, respeite as regras do servidor e não utilize os recursos para prejudicar outros participantes. A Docs. Company pode atualizar ou remover conteúdos e funcionalidades quando necessário.</p>`
     },
     cookies: {
       title: 'Cookies',

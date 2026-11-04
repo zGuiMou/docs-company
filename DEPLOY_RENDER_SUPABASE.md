@@ -20,7 +20,7 @@ Crie um **Web Service** no Render a partir deste repositório. O arquivo `render
 | `FRONTEND_URL` | URL pública criada pelo Render, sem `/` no final |
 | `REDIRECT_URI` | URL pública do Render + `/auth/callback` |
 
-Antes de publicar, faça a primeira migração neste computador. A cópia `data/docs-company.json` fica fora do GitHub por segurança, portanto ela não estará disponível no Render. Adicione temporariamente `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` ao arquivo local `docs_company/auth-server/.env` e execute `node migrate-to-supabase.js` dentro de `docs_company/auth-server`. A ferramenta confirma a quantidade de dados enviada. Depois disso, cada alteração também é salva no Supabase; o arquivo continua como cópia de segurança local.
+O estado ativo do site mantém as sessões de login. Registros do sistema anterior são movidos para `legacyArchive` privado durante a inicialização e não são expostos pelas APIs. Não execute ferramentas antigas de importação de empresas, contratos ou propostas. Mantenha `SUPABASE_SERVICE_ROLE_KEY` somente no ambiente do servidor.
 
 ## 3. Atualizar o Discord
 

@@ -14,8 +14,6 @@ services:
         sync: false
       - key: DISCORD_CLIENT_SECRET
         sync: false
-      - key: BOT_API_KEY
-        sync: false
       - key: FRONTEND_URL
         sync: false
       - key: REDIRECT_URI

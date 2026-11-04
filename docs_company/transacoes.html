@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101413">
+  <title>Transações | Docs. Company</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/fisco.css">
+</head>
+<body>
+  <header class="fisco-nav">
+    <a class="fisco-brand" href="/" aria-label="Docs. Company, início"><i class="fisco-brand-mark"></i>DOCS<span>.</span></a>
+    <nav class="fisco-navlinks" aria-label="Navegação principal">
+      <a href="/">Início</a>
+      <a href="/transacoes" aria-current="page">Transações</a>
+      <a href="/transparencia">Portal Transparência</a>
+    </nav>
+    <div id="authArea"><a class="fisco-login" href="/auth/discord">Entrar com Discord</a></div>
+  </header>
+
+  <main class="fisco-main">
+    <p class="fisco-eyebrow">Docs Company · dados de movimentação</p>
+    <h1 class="fisco-title">Transações <em>em foco.</em></h1>
+    <p class="fisco-lead">Consulte movimentações por prefeitura, tipo e período. Os filtros abaixo já funcionam neste protótipo.</p>
+
+    <div class="demo-notice" role="status">
+      <i class="demo-mark" aria-hidden="true"></i>
+      <div><strong>Modo de demonstração</strong>Registros, cidades e valores são fictícios e servem apenas para apresentar a interface. O mod coletor ainda será conectado ao sistema.</div>
+    </div>
+
+    <form class="filter-bar" id="filters">
+      <div class="filter-field">
+        <label for="search">Buscar</label>
+        <input id="search" name="q" type="search" placeholder="Prefeitura, participante ou código">
+      </div>
+      <div class="filter-field">
+        <label for="city">Prefeitura</label>
+        <select id="city" name="cidade"><option value="">Todas as cidades</option></select>
+      </div>
+      <div class="filter-field">
+        <label for="type">Tipo de transação</label>
+        <select id="type" name="tipo"><option value="">Todos os tipos</option></select>
+      </div>
+      <div class="filter-field">
+        <label for="from">A partir de</label>
+        <input id="from" name="de" type="date">
+      </div>
+      <div class="filter-field">
+        <label for="to">Até</label>
+        <input id="to" name="ate" type="date">
+      </div>
+      <button class="filter-clear" id="clearFilters" type="button">Limpar filtros</button>
+    </form>
+
+    <section class="stats" aria-label="Resumo filtrado">
+      <div class="stat"><span class="stat-label">Volume no recorte</span><strong class="stat-value" id="totalVolume">--</strong></div>
+      <div class="stat"><span class="stat-label">Transações</span><strong class="stat-value" id="totalCount">--</strong></div>
+      <div class="stat"><span class="stat-label">Prefeituras no recorte</span><strong class="stat-value" id="cityCount">--</strong></div>
+    </section>
+
+    <section class="data-section" aria-labelledby="chartTitle">
+      <div class="section-heading"><h2 id="chartTitle">Movimentações por cidade</h2><span id="chartCaption">10 CIDADES DE DEMONSTRAÇÃO</span></div>
+      <div class="city-chart" id="cityChart" aria-live="polite"></div>
+    </section>
+
+    <section class="data-section" aria-labelledby="tableTitle">
+      <div class="section-heading"><h2 id="tableTitle">Registro de transações</h2><span id="resultCount">-- resultados</span></div>
+      <div class="table-wrap">
+        <table class="transaction-table">
+          <thead><tr><th>Data e hora</th><th>Prefeitura</th><th>Operação</th><th>Origem</th><th>Destino</th><th style="text-align:right">Valor demonstrativo</th><th>Código</th></tr></thead>
+          <tbody id="transactionRows"></tbody>
+        </table>
+        <div class="empty-state" id="emptyState" hidden>Nenhuma transação corresponde a esses filtros.</div>
+      </div>
+      <p class="fisco-footnote">Esta auditoria considera apenas transações com participação de prefeitura ou governo. Não inclui transferências entre jogadores. Os valores são demonstrativos até a integração do mod Minecraft.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer"><span>Docs. Company · <span class="expresso-name">Expresso Continental</span></span><a href="/transparencia">Sobre a coleta e os cálculos</a></footer>
+  <script src="/transacoes.js" defer></script>
+  <script src="/site-auth.js" defer></script>
+</body>
+</html>

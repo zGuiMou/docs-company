@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101413">
+  <title>Portal Transparência | Docs. Company</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/fisco.css">
+</head>
+<body>
+  <header class="fisco-nav">
+    <a class="fisco-brand" href="/" aria-label="Docs. Company, início"><i class="fisco-brand-mark"></i>DOCS<span>.</span></a>
+    <nav class="fisco-navlinks" aria-label="Navegação principal">
+      <a href="/">Início</a>
+      <a href="/transacoes">Transações</a>
+      <a href="/transparencia" aria-current="page">Portal Transparência</a>
+    </nav>
+    <div id="authArea"><a class="fisco-login" href="/auth/discord">Entrar com Discord</a></div>
+  </header>
+
+  <main class="fisco-main transparency-main">
+    <section class="github-hero">
+      <div>
+        <p class="fisco-eyebrow">Código, coleta e prestação de contas</p>
+        <h1 class="github-wordmark">Git<span>Hub</span></h1>
+        <p class="github-copy">Acompanhe o código da Docs Company e o sistema que irá coletar eventos do console, tratar os registros e gerar os indicadores exibidos em Transações.</p>
+        <a class="github-cta" href="https://github.com/zGuiMou/fisco" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">↗</span> Acompanhar o código no GitHub</a>
+      </div>
+      <a class="github-visual" href="https://github.com/zGuiMou/fisco" target="_blank" rel="noopener noreferrer" aria-label="Abrir repositório da Docs Company no GitHub">
+        <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="Marca oficial do GitHub">
+        <span class="repo-caption"><strong>Docs Company · código aberto</strong><span>REPOSITÓRIO DO PROJETO</span></span>
+      </a>
+    </section>
+
+    <section class="transparency-flow" aria-labelledby="flowTitle">
+      <p class="fisco-eyebrow">Fluxo planejado</p>
+      <h2 id="flowTitle">Do evento ao indicador.</h2>
+      <div class="flow-grid">
+        <article class="flow-step"><b>01 / ORIGEM</b><h3>Console Minecraft</h3><p>Eventos envolvendo prefeituras, governo e seus participantes.</p></article>
+        <article class="flow-step"><b>02 / COLETA</b><h3>Mod de coleta</h3><p>Integração futura para identificar e enviar os registros.</p></article>
+        <article class="flow-step"><b>03 / TRATAMENTO</b><h3>Filtros e cálculos</h3><p>Normalização dos registros antes de compor os totais públicos.</p></article>
+        <article class="flow-step"><b>04 / PUBLICAÇÃO</b><h3>Página Transações</h3><p>Consulta por cidade, tipo de evento e período.</p></article>
+      </div>
+    </section>
+
+    <div class="project-status"><i class="status-mark" aria-hidden="true"></i><div><b>Integração em desenvolvimento</b><br>Até o mod enviar registros reais, a página Transações permanece em modo demonstrativo. O portal não apresenta cálculos simulados como dados oficiais.</div></div>
+  </main>
+
+  <footer class="site-footer"><span>Docs. Company · <span class="expresso-name">Expresso Continental</span></span><a href="/transacoes">Ver demonstração das transações</a></footer>
+  <script src="/site-auth.js" defer></script>
+</body>
+</html>
