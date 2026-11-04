@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model PlayerAccount {
+  playerId         String     @id @map("player_id") @db.Uuid
+  balance          BigInt     @default(0)
+  createdAt        DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  sentTransfers    Transfer[] @relation("transfer_sender")
+  receivedTransfers Transfer[] @relation("transfer_receiver")
+
+  @@map("player_accounts")
+}
+
+model Transfer {
+  id             String        @id @default(uuid()) @db.Uuid
+  idempotencyKey String        @unique @map("idempotency_key") @db.VarChar(128)
+  fromPlayerId   String        @map("from_player_id") @db.Uuid
+  toPlayerId     String        @map("to_player_id") @db.Uuid
+  amount         BigInt
+  reason         String        @db.VarChar(500)
+  source         String        @db.VarChar(80)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  sender         PlayerAccount @relation("transfer_sender", fields: [fromPlayerId], references: [playerId], onDelete: Restrict, onUpdate: Cascade)
+  receiver       PlayerAccount @relation("transfer_receiver", fields: [toPlayerId], references: [playerId], onDelete: Restrict, onUpdate: Cascade)
+  auditEvent     AuditEvent?
+
+  @@index([fromPlayerId, createdAt])
+  @@index([toPlayerId, createdAt])
+  @@map("transfers")
+}
+
+model AuditEvent {
+  id         String   @id @default(uuid()) @db.Uuid
+  transferId String   @unique @map("transfer_id") @db.Uuid
+  action     String   @db.VarChar(80)
+  actorId    String   @map("actor_id") @db.VarChar(100)
+  metadata   Json     @db.JsonB
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  transfer   Transfer @relation(fields: [transferId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([createdAt])
+  @@index([actorId, createdAt])
+  @@map("audit_events")
+}
