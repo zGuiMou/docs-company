@@ -48,16 +48,20 @@ const sessions = new Map();
 
 function createSession(user) {
   const token = crypto.randomBytes(32).toString('hex');
-  sessions.set(token, { user, expiresAt: Date.now() + SESSION_TTL_MS });
+  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+  sessions.set(tokenHash, { user, expiresAt: Date.now() + SESSION_TTL_MS });
+  saveData();
   return token;
 }
 
 function getCurrentUser(req) {
   const token = req.cookies[SESSION_COOKIE];
-  const session = token && sessions.get(token);
+  const tokenHash = token && crypto.createHash('sha256').update(token).digest('hex');
+  const session = tokenHash && sessions.get(tokenHash);
   if (!session) return null;
   if (session.expiresAt <= Date.now()) {
-    sessions.delete(token);
+    sessions.delete(tokenHash);
+    saveData();
     return null;
   }
   return session.user;
@@ -173,7 +177,10 @@ app.get('/auth/callback', async (req, res) => {
 
 app.get('/auth/logout', (req, res) => {
   const token = req.cookies[SESSION_COOKIE];
-  if (token) sessions.delete(token);
+  if (token) {
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    if (sessions.delete(tokenHash)) saveData();
+  }
   res.clearCookie(SESSION_COOKIE, { path: '/', sameSite: 'lax', secure: IS_PRODUCTION });
   res.redirect(FRONTEND_URL);
 });
@@ -222,6 +229,11 @@ function loadData() {
     if (Array.isArray(stored.companyLinkRequests)) companyLinkRequests.push(...stored.companyLinkRequests);
     if (stored.serviceImages && typeof stored.serviceImages === 'object') Object.assign(serviceImages, stored.serviceImages);
     if (stored.serviceTexts && typeof stored.serviceTexts === 'object') Object.assign(serviceTexts, stored.serviceTexts);
+    if (stored.sessions && typeof stored.sessions === 'object') {
+      Object.entries(stored.sessions).forEach(([tokenHash, session]) => {
+        if (session && session.expiresAt > Date.now() && session.user) sessions.set(tokenHash, session);
+      });
+    }
     let migrated = false;
     contracts.forEach(contract => {
       if (contract.status === 'EM ANÁLISE') {
@@ -241,7 +253,7 @@ function loadData() {
 }
 
 function getDataSnapshot() {
-  return { companies, userCompany, users, contracts, proposals, deletedStaticContractIds, companyComments, companyMembers, companyLinkRequests, serviceImages, serviceTexts };
+  return { companies, userCompany, users, contracts, proposals, deletedStaticContractIds, companyComments, companyMembers, companyLinkRequests, serviceImages, serviceTexts, sessions: Object.fromEntries(sessions) };
 }
 
 function saveData() {
@@ -265,6 +277,10 @@ function replaceDataFromStore(stored) {
   Object.keys(users).forEach(key => delete users[key]); Object.assign(users, stored.users || {});
   Object.keys(serviceImages).forEach(key => delete serviceImages[key]); Object.assign(serviceImages, stored.serviceImages || {});
   Object.keys(serviceTexts).forEach(key => delete serviceTexts[key]); Object.assign(serviceTexts, stored.serviceTexts || {});
+  sessions.clear();
+  Object.entries(stored.sessions || {}).forEach(([tokenHash, session]) => {
+    if (session && session.expiresAt > Date.now() && session.user) sessions.set(tokenHash, session);
+  });
 }
 
 async function loadSupabaseState() {
@@ -1051,8 +1067,38 @@ app.get('/auth/me', (req, res) => {
 // In production the same Express service delivers the public site and its API.
 // Keeping auth-server private avoids publishing .env and the local backup JSON.
 app.use('/auth-server', (req, res) => res.sendStatus(404));
-app.get('/parceiros.html', (req, res) => res.redirect(301, '/entidades.html'));
-app.use(express.static(path.join(__dirname, '..'), { dotfiles: 'deny' }));
+const PUBLIC_DIRECTORY = path.join(__dirname, '..');
+const pageRoutes = {
+  '/': 'index.html',
+  '/servicos': 'servicos.html',
+  '/licitacoes': 'licitacoes.html',
+  '/entidades': 'entidades.html',
+  '/empresa': 'empresa.html',
+  '/trilho-original': 'trilho-original.html',
+};
+const legacyPageRoutes = {
+  '/index.html': '/',
+  '/servicos.html': '/servicos',
+  '/licitacoes.html': '/licitacoes',
+  '/entidades.html': '/entidades',
+  '/empresa.html': '/empresa',
+  '/trilho-original.html': '/trilho-original',
+  '/parceiros.html': '/entidades',
+};
+
+Object.entries(pageRoutes).forEach(([route, filename]) => {
+  app.get(route, (req, res) => res.sendFile(path.join(PUBLIC_DIRECTORY, filename)));
+});
+
+app.get('/:page.html', (req, res, next) => {
+  const target = legacyPageRoutes[req.path];
+  if (!target) return next();
+  const queryIndex = req.originalUrl.indexOf('?');
+  const query = queryIndex === -1 ? '' : req.originalUrl.slice(queryIndex);
+  return res.redirect(301, `${target}${query}`);
+});
+
+app.use(express.static(PUBLIC_DIRECTORY, { dotfiles: 'deny' }));
 
 async function startServer() {
   if (USE_SUPABASE) {
