@@ -220,6 +220,11 @@ function hasValidMinecraftLogToken(req) {
   return supplied.length === expected.length && crypto.timingSafeEqual(supplied, expected);
 }
 
+async function supabaseErrorMessage(response, operation) {
+  const detail = (await response.text()).slice(0, 1000);
+  return `${operation} (${response.status})${detail ? `: ${detail}` : ''}`;
+}
+
 async function pruneOldMinecraftLogs() {
   const now = Date.now();
   if (now - lastMinecraftLogPruneAt < 24 * 60 * 60 * 1000) return;
@@ -231,7 +236,7 @@ async function pruneOldMinecraftLogs() {
     `${SUPABASE_URL}/rest/v1/minecraft_console_events?${query.toString()}`,
     { method: 'DELETE', headers: getSupabaseHeaders() },
   );
-  if (!response.ok) throw new Error(`Supabase retention cleanup failed (${response.status})`);
+  if (!response.ok) throw new Error(await supabaseErrorMessage(response, 'Supabase retention cleanup failed'));
 }
 
 app.get('/auth/discord', (req, res) => {
@@ -341,7 +346,7 @@ app.post('/api/minecraft-console/events', async (req, res) => {
         message,
       }),
     });
-    if (!response.ok) throw new Error(`Supabase insert failed (${response.status})`);
+    if (!response.ok) throw new Error(await supabaseErrorMessage(response, 'Supabase insert failed'));
 
     try {
       await pruneOldMinecraftLogs();
@@ -386,7 +391,7 @@ app.get('/api/minecraft-console/events', async (req, res) => {
       `${SUPABASE_URL}/rest/v1/minecraft_console_events?${query.toString()}`,
       { headers: getSupabaseHeaders() },
     );
-    if (!response.ok) throw new Error(`Supabase query failed (${response.status})`);
+    if (!response.ok) throw new Error(await supabaseErrorMessage(response, 'Supabase query failed'));
 
     const rows = await response.json();
     const events = (afterId === undefined ? rows.reverse() : rows).map((row) => ({
