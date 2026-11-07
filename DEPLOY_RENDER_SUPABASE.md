@@ -17,7 +17,7 @@ Crie um **Web Service** no Render a partir deste repositório. O arquivo `render
 | --- | --- |
 | `NODE_ENV` | `production` |
 | `SUPABASE_URL` | Project URL do Supabase |
-| `SUPABASE_SERVICE_ROLE_KEY` | chave `service_role` do Supabase |
+| `SUPABASE_SECRET_KEY` | chave secreta atual do Supabase (`sb_secret_...`), somente no backend |
 | `DISCORD_CLIENT_ID` | ID da aplicação Discord atual |
 | `DISCORD_CLIENT_SECRET` | segredo da aplicação Discord atual |
 | `FRONTEND_URL` | URL pública criada pelo Render, sem `/` no final |
@@ -25,7 +25,7 @@ Crie um **Web Service** no Render a partir deste repositório. O arquivo `render
 | `MINECRAFT_LOG_INGEST_TOKEN` | segredo aleatório com pelo menos 32 caracteres, compartilhado somente entre Render e o mod |
 | `MINECRAFT_LOG_VIEWER_IDS` | IDs de usuário Discord autorizados a ver o painel; separe múltiplos IDs por vírgula |
 
-O estado ativo do site mantém as sessões de login. Registros do sistema anterior são movidos para `legacyArchive` privado durante a inicialização e não são expostos pelas APIs. Não execute ferramentas antigas de importação de empresas, contratos ou propostas. Mantenha `SUPABASE_SERVICE_ROLE_KEY` somente no ambiente do servidor.
+O estado ativo do site mantém as sessões de login. Registros do sistema anterior são movidos para `legacyArchive` privado durante a inicialização e não são expostos pelas APIs. Não execute ferramentas antigas de importação de empresas, contratos ou propostas. Mantenha `SUPABASE_SECRET_KEY` somente no ambiente do servidor. O backend também aceita o nome legado `SUPABASE_SERVICE_ROLE_KEY` para compatibilidade.
 
 Gere o segredo localmente, sem enviá-lo por chat ou gravá-lo no Git. No PowerShell:
 

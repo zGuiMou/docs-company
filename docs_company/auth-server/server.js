@@ -17,8 +17,8 @@ const CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:8000';
 const REDIRECT_URI = process.env.REDIRECT_URI || `http://localhost:${PORT}/auth/callback`;
 const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const USE_SUPABASE = Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const USE_SUPABASE = Boolean(SUPABASE_URL && SUPABASE_SECRET_KEY);
 const MINECRAFT_LOG_INGEST_TOKEN = process.env.MINECRAFT_LOG_INGEST_TOKEN || '';
 const MINECRAFT_LOG_VIEWER_IDS = new Set(
   (process.env.MINECRAFT_LOG_VIEWER_IDS || '').split(',').map((id) => id.trim()).filter(Boolean),
@@ -125,10 +125,8 @@ function persistSupabaseState() {
     const response = await fetchImpl(`${SUPABASE_URL}/rest/v1/docs_company_state`, {
       method: 'POST',
       headers: {
-        apikey: SUPABASE_SERVICE_ROLE_KEY,
-        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        ...getSupabaseHeaders('resolution=merge-duplicates'),
         'Content-Type': 'application/json',
-        Prefer: 'resolution=merge-duplicates',
       },
       body: JSON.stringify({ id: 'main', data: snapshot, updated_at: new Date().toISOString() }),
     });
@@ -146,10 +144,7 @@ function saveData() {
 
 async function loadSupabaseState() {
   const response = await fetchImpl(`${SUPABASE_URL}/rest/v1/docs_company_state?id=eq.main&select=data`, {
-    headers: {
-      apikey: SUPABASE_SERVICE_ROLE_KEY,
-      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-    },
+    headers: getSupabaseHeaders(),
   });
   if (!response.ok) throw new Error(`Supabase load failed (${response.status})`);
   const rows = await response.json();
@@ -190,11 +185,14 @@ function getCurrentUser(req) {
 }
 
 function getSupabaseHeaders(prefer) {
-  return {
-    apikey: SUPABASE_SERVICE_ROLE_KEY,
-    Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+  const headers = {
+    apikey: SUPABASE_SECRET_KEY,
     ...(prefer ? { Prefer: prefer } : {}),
   };
+  if (!SUPABASE_SECRET_KEY.startsWith('sb_secret_')) {
+    headers.Authorization = `Bearer ${SUPABASE_SECRET_KEY}`;
+  }
+  return headers;
 }
 
 function isMinecraftLogViewer(req, res) {
