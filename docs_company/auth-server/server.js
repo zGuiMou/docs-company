@@ -19,6 +19,11 @@ const REDIRECT_URI = process.env.REDIRECT_URI || `http://localhost:${PORT}/auth/
 const SUPABASE_URL = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const USE_SUPABASE = Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
+const MINECRAFT_LOG_INGEST_TOKEN = process.env.MINECRAFT_LOG_INGEST_TOKEN || '';
+const MINECRAFT_LOG_VIEWER_IDS = new Set(
+  (process.env.MINECRAFT_LOG_VIEWER_IDS || '').split(',').map((id) => id.trim()).filter(Boolean),
+);
+const MINECRAFT_LOG_RETENTION_DAYS = 30;
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
 const SESSION_COOKIE = 'docs_session';
@@ -50,10 +55,14 @@ let archivedLegacyState = null;
 let legacyStateNeedsMigration = false;
 let supabaseReady = false;
 let supabaseSaveChain = Promise.resolve();
+let lastMinecraftLogPruneAt = 0;
 
 app.disable('x-powered-by');
 app.use(cookieParser());
-app.use(express.json({ limit: '16kb' }));
+app.use((req, res, next) => {
+  const limit = req.path === '/api/minecraft-console/events' ? '128kb' : '16kb';
+  return express.json({ limit })(req, res, next);
+});
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', FRONTEND_URL);
   res.header('Access-Control-Allow-Credentials', 'true');
@@ -180,6 +189,51 @@ function getCurrentUser(req) {
   return session.user;
 }
 
+function getSupabaseHeaders(prefer) {
+  return {
+    apikey: SUPABASE_SERVICE_ROLE_KEY,
+    Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+    ...(prefer ? { Prefer: prefer } : {}),
+  };
+}
+
+function isMinecraftLogViewer(req, res) {
+  const user = getCurrentUser(req);
+  if (!user) {
+    res.status(401).json({ error: 'Login required' });
+    return false;
+  }
+  if (!MINECRAFT_LOG_VIEWER_IDS.has(user.id)) {
+    res.status(403).json({ error: 'Access denied' });
+    return false;
+  }
+  return true;
+}
+
+function hasValidMinecraftLogToken(req) {
+  if (Buffer.byteLength(MINECRAFT_LOG_INGEST_TOKEN) < 32) return false;
+  const match = (req.get('authorization') || '').match(/^Bearer\s+(.+)$/i);
+  if (!match) return false;
+
+  const expected = Buffer.from(MINECRAFT_LOG_INGEST_TOKEN);
+  const supplied = Buffer.from(match[1]);
+  return supplied.length === expected.length && crypto.timingSafeEqual(supplied, expected);
+}
+
+async function pruneOldMinecraftLogs() {
+  const now = Date.now();
+  if (now - lastMinecraftLogPruneAt < 24 * 60 * 60 * 1000) return;
+  lastMinecraftLogPruneAt = now;
+
+  const cutoff = new Date(now - MINECRAFT_LOG_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  const query = new URLSearchParams({ timestamp: `lt.${cutoff}` });
+  const response = await fetchImpl(
+    `${SUPABASE_URL}/rest/v1/minecraft_console_events?${query.toString()}`,
+    { method: 'DELETE', headers: getSupabaseHeaders() },
+  );
+  if (!response.ok) throw new Error(`Supabase retention cleanup failed (${response.status})`);
+}
+
 app.get('/auth/discord', (req, res) => {
   if (!CLIENT_ID || !CLIENT_SECRET) return res.status(503).send('Login do Discord não configurado.');
   const state = crypto.randomBytes(16).toString('hex');
@@ -252,6 +306,104 @@ app.get('/auth/me', (req, res) => {
   return res.json({ user: getCurrentUser(req) });
 });
 
+app.post('/api/minecraft-console/events', async (req, res) => {
+  if (!MINECRAFT_LOG_INGEST_TOKEN || Buffer.byteLength(MINECRAFT_LOG_INGEST_TOKEN) < 32) {
+    return res.status(503).json({ error: 'Minecraft event ingestion is not configured' });
+  }
+  if (!hasValidMinecraftLogToken(req)) return res.status(401).json({ error: 'Unauthorized' });
+  if (!USE_SUPABASE) return res.status(503).json({ error: 'Event storage is not configured' });
+
+  const { timestamp, type, player, message } = req.body || {};
+  const eventTime = typeof timestamp === 'string' ? Date.parse(timestamp) : NaN;
+  const validTypes = new Set(['console', 'player_chat', 'player_command']);
+  if (!Number.isFinite(eventTime) || eventTime > Date.now() + 5 * 60 * 1000) {
+    return res.status(400).json({ error: 'Invalid timestamp' });
+  }
+  if (!validTypes.has(type)) return res.status(400).json({ error: 'Invalid event type' });
+  if (typeof message !== 'string' || message.length === 0 || message.length > 16_000 || message.includes('\u0000')) {
+    return res.status(400).json({ error: 'Invalid message' });
+  }
+  if (player !== null && (typeof player !== 'string' || player.length > 64)) {
+    return res.status(400).json({ error: 'Invalid player' });
+  }
+  if (type !== 'console' && (typeof player !== 'string' || player.length === 0)) {
+    return res.status(400).json({ error: 'Player is required for this event type' });
+  }
+
+  try {
+    const response = await fetchImpl(`${SUPABASE_URL}/rest/v1/minecraft_console_events`, {
+      method: 'POST',
+      headers: { ...getSupabaseHeaders('return=minimal'), 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        timestamp: new Date(eventTime).toISOString(),
+        event_type: type,
+        player,
+        message,
+      }),
+    });
+    if (!response.ok) throw new Error(`Supabase insert failed (${response.status})`);
+
+    try {
+      await pruneOldMinecraftLogs();
+    } catch (error) {
+      console.error('Could not prune expired Minecraft console events:', error.message);
+    }
+    return res.status(202).json({ accepted: true });
+  } catch (error) {
+    console.error('Could not store Minecraft console event:', error.message);
+    return res.status(502).json({ error: 'Could not store event' });
+  }
+});
+
+app.get('/api/minecraft-console/events', async (req, res) => {
+  if (!isMinecraftLogViewer(req, res)) return;
+  if (!USE_SUPABASE) return res.status(503).json({ error: 'Event storage is not configured' });
+
+  const afterId = req.query.afterId;
+  if (afterId !== undefined && (typeof afterId !== 'string' || !/^\d{1,18}$/.test(afterId))) {
+    return res.status(400).json({ error: 'Invalid event cursor' });
+  }
+
+  const query = new URLSearchParams({
+    select: 'id,timestamp,event_type,player,message',
+    order: afterId === undefined ? 'id.desc' : 'id.asc',
+    limit: '100',
+  });
+  query.set(
+    'timestamp',
+    `gte.${new Date(Date.now() - MINECRAFT_LOG_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString()}`,
+  );
+  if (afterId !== undefined) query.set('id', `gt.${afterId}`);
+
+  try {
+    try {
+      await pruneOldMinecraftLogs();
+    } catch (error) {
+      console.error('Could not prune expired Minecraft console events:', error.message);
+    }
+
+    const response = await fetchImpl(
+      `${SUPABASE_URL}/rest/v1/minecraft_console_events?${query.toString()}`,
+      { headers: getSupabaseHeaders() },
+    );
+    if (!response.ok) throw new Error(`Supabase query failed (${response.status})`);
+
+    const rows = await response.json();
+    const events = (afterId === undefined ? rows.reverse() : rows).map((row) => ({
+      id: row.id,
+      timestamp: row.timestamp,
+      type: row.event_type,
+      player: row.player,
+      message: row.message,
+    }));
+    res.set('Cache-Control', 'no-store');
+    return res.json({ events });
+  } catch (error) {
+    console.error('Could not load Minecraft console events:', error.message);
+    return res.status(502).json({ error: 'Could not load events' });
+  }
+});
+
 app.get('/health', (req, res) => res.json({ ok: true }));
 app.use('/auth-server', (req, res) => res.sendStatus(404));
 app.use('/api', (req, res) => res.status(410).json({ error: 'Esta API foi desativada.' }));
@@ -261,6 +413,7 @@ const pageRoutes = {
   '/': 'index.html',
   '/transacoes': 'transacoes.html',
   '/transparencia': 'transparencia.html',
+  '/minecraft-console': 'minecraft-console.html',
 };
 const legacyPageRoutes = {
   '/index.html': '/',

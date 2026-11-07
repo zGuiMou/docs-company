@@ -16,6 +16,7 @@
       <a href="/">Início</a>
       <a href="/transacoes">Transações</a>
       <a href="/transparencia" aria-current="page">Portal Transparência</a>
+      <a href="/minecraft-console">Console</a>
     </nav>
     <div id="authArea"><a class="fisco-login" href="/auth/discord">Entrar com Discord</a></div>
   </header>
@@ -25,7 +26,7 @@
       <div>
         <p class="fisco-eyebrow">Código, coleta e prestação de contas</p>
         <h1 class="github-wordmark">Git<span>Hub</span></h1>
-        <p class="github-copy">Acompanhe o código da Docs Company e o sistema que irá coletar eventos do console, tratar os registros e gerar os indicadores exibidos em Transações.</p>
+        <p class="github-copy">Acompanhe o código e a integração que recebe linhas do console, mensagens e comandos do servidor. O painel é privado, e a coleta só será ativada depois da configuração e do aviso aos jogadores.</p>
         <a class="github-cta" href="https://github.com/zGuiMou/fisco" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">↗</span> Acompanhar o código no GitHub</a>
       </div>
       <a class="github-visual" href="https://github.com/zGuiMou/fisco" target="_blank" rel="noopener noreferrer" aria-label="Abrir repositório da Docs Company no GitHub">
@@ -35,17 +36,17 @@
     </section>
 
     <section class="transparency-flow" aria-labelledby="flowTitle">
-      <p class="fisco-eyebrow">Fluxo planejado</p>
-      <h2 id="flowTitle">Do evento ao indicador.</h2>
+      <p class="fisco-eyebrow">Como funciona</p>
+      <h2 id="flowTitle">Do evento ao painel.</h2>
       <div class="flow-grid">
-        <article class="flow-step"><b>01 / ORIGEM</b><h3>Console Minecraft</h3><p>Eventos envolvendo prefeituras, governo e seus participantes.</p></article>
-        <article class="flow-step"><b>02 / COLETA</b><h3>Mod de coleta</h3><p>Integração futura para identificar e enviar os registros.</p></article>
-        <article class="flow-step"><b>03 / TRATAMENTO</b><h3>Filtros e cálculos</h3><p>Normalização dos registros antes de compor os totais públicos.</p></article>
-        <article class="flow-step"><b>04 / PUBLICAÇÃO</b><h3>Página Transações</h3><p>Consulta por cidade, tipo de evento e período.</p></article>
+        <article class="flow-step"><b>01 / ORIGEM</b><h3>Servidor Minecraft</h3><p>O mod acompanha novas linhas do console, mensagens de chat e comandos de jogadores.</p></article>
+        <article class="flow-step"><b>02 / ENVIO</b><h3>Endpoint HTTPS</h3><p>O site exige um segredo de integração antes de aceitar cada evento.</p></article>
+        <article class="flow-step"><b>03 / ARMAZENAMENTO</b><h3>Supabase privado</h3><p>Os registros são limitados a contas autorizadas e removidos após 30 dias.</p></article>
+        <article class="flow-step"><b>04 / CONSULTA</b><h3>Painel do console</h3><p>Área privada com login Discord, atualização automática e acesso por lista autorizada.</p></article>
       </div>
     </section>
 
-    <div class="project-status"><i class="status-mark" aria-hidden="true"></i><div><b>Integração em desenvolvimento</b><br>Até o mod enviar registros reais, a página Transações permanece em modo demonstrativo. O portal não apresenta cálculos simulados como dados oficiais.</div></div>
+    <div class="project-status"><i class="status-mark" aria-hidden="true"></i><div><b>Integração preparada; coleta desativada</b><br>O envio permanece desligado até a tabela do banco, as variáveis do Render, o segredo no mod e o aviso aos jogadores estarem configurados. A página Transações segue em modo demonstrativo.</div></div>
   </main>
 
   <footer class="site-footer"><span>Docs. Company · <span class="expresso-name">Expresso Continental</span></span><a href="/transacoes">Ver demonstração das transações</a></footer>

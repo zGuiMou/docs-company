@@ -1,0 +1,32 @@
+.console-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+.console-heading .fisco-title { font-size: clamp(42px, 7vw, 62px); }
+.console-controls { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+.console-status { color: var(--fisco-muted); font: 11px var(--fisco-mono); }
+.console-status[data-state="connected"] { color: #7ee0a4; }
+.console-status[data-state="error"] { color: var(--fisco-red); }
+.console-button { min-height: 38px; padding: 0 12px; border: 1px solid var(--fisco-line); border-radius: 8px; background: var(--fisco-panel); color: var(--fisco-text); cursor: pointer; }
+.console-button:hover:not(:disabled) { border-color: var(--fisco-blue); color: var(--fisco-blue); }
+.console-button:disabled { opacity: .48; cursor: not-allowed; }
+.console-access, .console-panel { margin-top: 30px; border: 1px solid var(--fisco-line); border-radius: 14px; background: rgba(8, 12, 17, .86); }
+.console-access { padding: 24px; }
+.console-access h2, .console-panel-heading h2 { margin: 0; font-size: 17px; }
+.console-access p { margin: 8px 0 18px; color: var(--fisco-muted); font-size: 13px; line-height: 1.6; }
+.console-panel-heading { padding: 18px 20px; display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--fisco-line); }
+.console-panel-heading span { color: var(--fisco-muted); font: 10px var(--fisco-mono); }
+.console-events { max-height: min(66vh, 760px); overflow: auto; }
+.console-event { padding: 14px 18px; display: grid; grid-template-columns: minmax(140px, 190px) minmax(100px, 150px) minmax(0, 1fr); gap: 14px; border-bottom: 1px solid rgba(255, 255, 255, .055); }
+.console-event:last-child { border-bottom: 0; }
+.console-event-time, .console-event-type { color: var(--fisco-muted); font: 10px var(--fisco-mono); }
+.console-event-type[data-type="player_chat"] { color: var(--fisco-cyan); }
+.console-event-type[data-type="player_command"] { color: var(--fisco-orange); }
+.console-event-player { display: block; margin-top: 4px; color: var(--fisco-text); font: 11px var(--fisco-mono); overflow-wrap: anywhere; }
+.console-event-message { margin: 0; color: var(--fisco-text); font: 12px/1.6 var(--fisco-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.console-privacy { margin: 15px 0 0; color: var(--fisco-muted); font-size: 11px; line-height: 1.6; }
+
+@media (max-width: 720px) {
+  .console-heading { align-items: flex-start; flex-direction: column; }
+  .console-controls { width: 100%; }
+  .console-panel-heading { align-items: flex-start; flex-direction: column; }
+  .console-event { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; }
+  .console-event-message { grid-column: 1 / -1; }
+}

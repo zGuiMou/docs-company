@@ -22,3 +22,7 @@ services:
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
+      - key: MINECRAFT_LOG_INGEST_TOKEN
+        sync: false
+      - key: MINECRAFT_LOG_VIEWER_IDS
+        sync: false
