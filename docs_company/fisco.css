@@ -121,7 +121,9 @@ button, a, input, select { -webkit-tap-highlight-color: transparent; }
 .github-wordmark span { color: var(--fisco-blue); }
 .home-wordmark { margin: 0; font-size: 128px; font-weight: 700; line-height: .82; }
 .home-wordmark span { color: var(--fisco-blue); }
-.home-wordmark small { display: block; margin-top: 12px; color: var(--fisco-text); font-size: 48px; font-weight: 500; line-height: 1; }
+.home-wordmark small { display: block; margin-top: 12px; color: var(--fisco-text); font-size: 56px; font-weight: 500; line-height: 1; }
+.home-expresso-title { margin: 24px 0 0; color: var(--fisco-text); font-size: 40px; font-weight: 600; line-height: 1.1; }
+.home-expresso-title span { color: var(--fisco-orange); }
 .github-copy { max-width: 590px; margin: 20px 0 0; color: var(--fisco-muted); font-size: 16px; line-height: 1.7; }
 .home-audit-copy { max-width: 530px; margin-top: 12px; font-size: 14px; }
 .github-cta { min-height: 52px; margin-top: 26px; padding: 0 18px; display: inline-flex; align-items: center; gap: 12px; border: 1px solid var(--fisco-blue); border-radius: 12px; background: var(--fisco-blue); color: #081017; font-weight: 700; }
@@ -141,18 +143,6 @@ button, a, input, select { -webkit-tap-highlight-color: transparent; }
 .home-visual iframe { position: relative; z-index: 1; display: block; width: 100%; height: 100%; min-height: 320px; border: 0; background: transparent; }
 .repo-caption { position: absolute; right: 16px; bottom: 14px; left: 16px; z-index: 2; display: flex; justify-content: space-between; gap: 10px; color: var(--fisco-muted); font: 10px var(--fisco-mono); }
 .repo-caption strong { color: var(--fisco-text); font-weight: 400; }
-.transparency-flow { padding: 40px 0 48px; }
-.transparency-flow h2 { margin: 0 0 22px; font-size: 22px; font-weight: 600; }
-.flow-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--fisco-line); border-bottom: 1px solid var(--fisco-line); }
-.flow-step { min-height: 150px; padding: 20px 18px 20px 0; }
-.flow-step + .flow-step { padding-left: 18px; border-left: 1px solid var(--fisco-line); }
-.flow-step b { color: var(--fisco-blue); font: 11px var(--fisco-mono); }
-.flow-step h3 { margin: 23px 0 7px; font-size: 15px; }
-.flow-step p { max-width: 240px; margin: 0; color: var(--fisco-muted); font-size: 12px; line-height: 1.6; }
-.project-status { display: flex; align-items: flex-start; gap: 12px; color: var(--fisco-muted); font-size: 12px; line-height: 1.6; }
-.project-status b { color: var(--fisco-blue); font: 11px var(--fisco-mono); text-transform: uppercase; }
-.status-mark { width: 8px; height: 8px; flex: 0 0 8px; margin-top: 5px; background: var(--fisco-blue); border-radius: 50%; }
-
 @media (max-width: 900px) {
   .filter-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .city-chart { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -189,16 +179,12 @@ button, a, input, select { -webkit-tap-highlight-color: transparent; }
   .transparency-main { padding-top: 145px; }
   .github-wordmark { font-size: 72px; }
   .home-wordmark { font-size: 72px; }
-  .home-wordmark small { margin-top: 8px; font-size: 32px; }
+  .home-wordmark small { margin-top: 8px; font-size: 34px; }
+  .home-expresso-title { margin-top: 20px; font-size: 29px; }
   .github-visual { min-height: 230px; }
   .github-visual img { width: 120px; height: 120px; }
   .github-actions { flex-direction: column; }
   .github-actions .github-cta { width: 100%; justify-content: center; }
-  .flow-grid { grid-template-columns: 1fr 1fr; }
-  .flow-step { min-height: 135px; padding: 16px 10px 16px 0; }
-  .flow-step + .flow-step { padding-left: 10px; }
-  .flow-step:nth-child(3) { border-left: 0; padding-left: 0; border-top: 1px solid var(--fisco-line); }
-  .flow-step:nth-child(4) { border-top: 1px solid var(--fisco-line); }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
