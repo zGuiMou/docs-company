@@ -14,15 +14,13 @@ services:
         sync: false
       - key: DISCORD_CLIENT_SECRET
         sync: false
+      - key: BOT_API_KEY
+        sync: false
       - key: FRONTEND_URL
         sync: false
       - key: REDIRECT_URI
         sync: false
       - key: SUPABASE_URL
         sync: false
-      - key: SUPABASE_SECRET_KEY
-        sync: false
-      - key: MINECRAFT_LOG_INGEST_TOKEN
-        sync: false
-      - key: MINECRAFT_LOG_VIEWER_IDS
+      - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false

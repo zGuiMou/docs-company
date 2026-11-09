@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Trilho Elétrico 3D - Minecraft</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: transparent;
+      font-family: Arial, sans-serif;
+    }
+    #info {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      color: white;
+      background: rgba(18, 20, 24, 0.58);
+      backdrop-filter: blur(2px);
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      pointer-events: none;
+      line-height: 1.45;
+    }
+    #loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">Carregando modelo...</div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+    // === CENA ===
+    const scene = new THREE.Scene();
+    scene.background = null;
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(1.8, 1.4, 2.2);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setClearColor(0x000000, 0);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    document.body.appendChild(renderer.domElement);
+
+    // Controles do mouse
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 2.5;
+    controls.enablePan = false;
+    controls.minDistance = 0.8;
+    controls.maxDistance = 6;
+    controls.target.set(0, 0.1, 0);
+
+    // Luzes
+    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+
+    const mainLight = new THREE.DirectionalLight(0xffffff, 1.1);
+    mainLight.position.set(3, 5, 4);
+    mainLight.castShadow = true;
+    scene.add(mainLight);
+
+    const fillLight = new THREE.DirectionalLight(0xfff0dd, 0.4);
+    fillLight.position.set(-3, 2, -2);
+    scene.add(fillLight);
+
+    // === CARREGAR O MODELO GLTF ===
+    const loader = new GLTFLoader();
+    const modelUrl = new URL('./powered_rail.gltf', window.location.href).href;
+
+    if (window.location.protocol === 'file:') {
+      document.getElementById('loading').textContent = 'Abra este arquivo via um servidor local para carregar o modelo 3D.';
+    } else {
+      loader.load(
+        modelUrl,
+        (gltf) => {
+          const model = gltf.scene;
+
+        // Centraliza e ajusta o tamanho
+        model.scale.set(4, 4, 4);     // aumenta o tamanho
+        model.position.set(0, 0, 0);
+
+        // Garante que todos os materiais usem a textura corretamente
+        model.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+            }
+          }
+        });
+
+          scene.add(model);
+          document.getElementById('loading').style.display = 'none';
+        },
+        undefined,
+        (error) => {
+          console.error('Erro ao carregar o modelo:', error);
+          document.getElementById('loading').textContent = 'Erro ao carregar o modelo!';
+        }
+      );
+    }
+
+    // === ANIMAÇÃO ===
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // Responsivo
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
