@@ -270,7 +270,16 @@ app.get('/auth/callback', async (req, res) => {
       }),
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     });
-    if (!tokenResponse.ok) throw new Error(`Discord token request failed (${tokenResponse.status})`);
+    if (!tokenResponse.ok) {
+      let errorDetails = '';
+      try {
+        const errorData = await tokenResponse.json();
+        errorDetails = [errorData.error, errorData.error_description].filter(Boolean).join(': ');
+      } catch {
+        errorDetails = '';
+      }
+      throw new Error(`Discord token request failed (${tokenResponse.status})${errorDetails ? `: ${errorDetails}` : ''}`);
+    }
     const tokenData = await tokenResponse.json();
     if (!tokenData.access_token) throw new Error('Discord did not return an access token');
 
