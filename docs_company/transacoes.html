@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101619">
+  <title>Transações | Docs Company</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="transacoes.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="Docs Company, início">DOCS<span>.</span><small>COMPANY</small></a>
+    <nav class="navlinks" aria-label="Navegação principal">
+      <a href="index.html">Início</a>
+      <a class="active" href="transacoes.html" aria-current="page">Transações</a>
+    </nav>
+    <div id="authArea">
+      <a class="login-link" href="http://localhost:3000/auth/discord">Entrar com Discord</a>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="page-heading" aria-labelledby="pageTitle">
+      <p class="eyebrow">REGISTRO MUNICIPAL <span>·</span> EXPRESSO CONTINENTAL</p>
+      <h1 id="pageTitle">Transações</h1>
+      <p class="lead">Movimentações públicas envolvendo as prefeituras do continente.</p>
+    </section>
+
+    <section class="summary" aria-label="Resumo das transações">
+      <div class="metric"><span>Registros</span><strong id="metricCount">0</strong></div>
+      <div class="metric metric-income"><span>Receitas</span><strong id="metricIncome">R$ 0,00</strong></div>
+      <div class="metric metric-expense"><span>Despesas</span><strong id="metricExpense">R$ 0,00</strong></div>
+    </section>
+
+    <section id="adminWorkspace" class="admin-workspace" aria-labelledby="adminTitle" hidden>
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">ÁREA RESTRITA <span>·</span> GUIMOU</p>
+          <h2 id="adminTitle">Gerenciar transações</h2>
+        </div>
+        <span class="admin-state">ADMINISTRADOR</span>
+      </div>
+      <form id="transactionForm" class="transaction-form">
+        <input id="transactionId" type="hidden">
+        <label>Data<input id="transactionDate" name="date" type="date" required></label>
+        <label>Cidade<select id="transactionCity" name="city" required></select></label>
+        <label>Movimento<select id="transactionType" name="type" required><option value="Receita">Receita</option><option value="Despesa">Despesa</option></select></label>
+        <label>Valor<input id="transactionAmount" name="amount" type="number" min="0.01" step="0.01" placeholder="0,00" required></label>
+        <label class="field-wide">Descrição<input id="transactionDescription" name="description" maxlength="240" placeholder="Ex.: repasse de arrecadação" required></label>
+        <label>Envolvido<input id="transactionCounterparty" name="counterparty" maxlength="120" placeholder="Empresa ou órgão"></label>
+        <div class="form-actions">
+          <button id="cancelEdit" class="button button-quiet" type="button" hidden>Cancelar edição</button>
+          <button id="saveTransaction" class="button button-primary" type="submit">Adicionar transação</button>
+        </div>
+      </form>
+      <p id="adminFeedback" class="feedback" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="municipality-section" aria-labelledby="municipalityTitle">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">12 MUNICÍPIOS</p>
+          <h2 id="municipalityTitle">Prefeituras</h2>
+        </div>
+        <span class="section-note">Mandatos ainda não definidos</span>
+      </div>
+      <div id="cityRoster" class="city-roster" aria-live="polite"></div>
+    </section>
+
+    <section class="records-section" aria-labelledby="recordsTitle">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">LIVRO-CAIXA PÚBLICO</p>
+          <h2 id="recordsTitle">Lançamentos</h2>
+        </div>
+        <span id="recordsCount" class="section-note">0 registros</span>
+      </div>
+      <div class="filters" role="search">
+        <label class="search-field"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="Buscar descrição ou envolvido" aria-label="Buscar transações"></label>
+        <label><span class="sr-only">Filtrar cidade</span><select id="cityFilter"><option value="">Todas as cidades</option></select></label>
+        <label><span class="sr-only">Filtrar movimento</span><select id="typeFilter"><option value="">Entradas e saídas</option><option value="Receita">Receitas</option><option value="Despesa">Despesas</option></select></label>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Data</th><th>Cidade</th><th>Movimento</th><th>Descrição</th><th>Envolvido</th><th class="amount-heading">Valor</th><th id="actionsHeading" hidden>Ações</th></tr></thead>
+          <tbody id="transactionRows"><tr><td class="table-message" colspan="7">Carregando transações…</td></tr></tbody>
+        </table>
+      </div>
+      <p id="loadError" class="load-error" role="alert" hidden></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>Docs. Company · Expresso Continental</span>
+    <span>Registros de transações envolvendo prefeituras.</span>
+  </footer>
+
+  <script src="runtime-api.js"></script>
+  <script src="transacoes.js" defer></script>
+</body>
+</html>

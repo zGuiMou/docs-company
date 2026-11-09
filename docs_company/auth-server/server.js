@@ -187,6 +187,8 @@ const companies = [];
 const userCompany = {}; // map userId -> companyId
 const users = {}; // map userId -> most recent Discord profile
 const contracts = [];
+const transactions = [];
+const TRANSACTION_CITIES = Array.from({ length: 12 }, (_, index) => `Cidade ${String.fromCharCode(65 + index)}`);
 const deletedStaticContractIds = [];
 const companyComments = [];
 const companyMembers = [];
@@ -213,6 +215,7 @@ function loadData() {
     const stored = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     if (Array.isArray(stored.companies)) companies.push(...stored.companies);
     if (Array.isArray(stored.contracts)) contracts.push(...stored.contracts);
+    if (Array.isArray(stored.transactions)) transactions.push(...stored.transactions);
     if (Array.isArray(stored.proposals)) proposals.push(...stored.proposals);
     if (stored.userCompany && typeof stored.userCompany === 'object') Object.assign(userCompany, stored.userCompany);
     if (stored.users && typeof stored.users === 'object') Object.assign(users, stored.users);
@@ -241,7 +244,7 @@ function loadData() {
 }
 
 function getDataSnapshot() {
-  return { companies, userCompany, users, contracts, proposals, deletedStaticContractIds, companyComments, companyMembers, companyLinkRequests, serviceImages, serviceTexts };
+  return { companies, userCompany, users, contracts, transactions, proposals, deletedStaticContractIds, companyComments, companyMembers, companyLinkRequests, serviceImages, serviceTexts };
 }
 
 function saveData() {
@@ -256,6 +259,7 @@ function saveData() {
 function replaceDataFromStore(stored) {
   companies.splice(0, companies.length, ...(Array.isArray(stored.companies) ? stored.companies : []));
   contracts.splice(0, contracts.length, ...(Array.isArray(stored.contracts) ? stored.contracts : []));
+  transactions.splice(0, transactions.length, ...(Array.isArray(stored.transactions) ? stored.transactions : []));
   proposals.splice(0, proposals.length, ...(Array.isArray(stored.proposals) ? stored.proposals : []));
   deletedStaticContractIds.splice(0, deletedStaticContractIds.length, ...(Array.isArray(stored.deletedStaticContractIds) ? stored.deletedStaticContractIds : []));
   companyComments.splice(0, companyComments.length, ...(Array.isArray(stored.companyComments) ? stored.companyComments : []));
@@ -365,6 +369,74 @@ app.post('/api/propostas', requireAuth, (req, res) => {
     console.error('POST /api/propostas error', err);
     return res.status(500).json({ error: 'server error' });
   }
+});
+
+function readTransactionInput(body = {}) {
+  const city = readText(body.city, 32);
+  const type = readText(body.type, 20);
+  const date = readText(body.date, 10);
+  const description = readText(body.description, 240);
+  const counterparty = readText(body.counterparty, 120);
+  const amount = Number(body.amount);
+  const parsedDate = /^\d{4}-\d{2}-\d{2}$/.test(date) ? new Date(`${date}T00:00:00.000Z`) : null;
+
+  if (!TRANSACTION_CITIES.includes(city)) return { error: 'Cidade inválida.' };
+  if (!['Receita', 'Despesa'].includes(type)) return { error: 'Tipo de transação inválido.' };
+  if (!parsedDate || Number.isNaN(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== date) {
+    return { error: 'Data inválida.' };
+  }
+  if (!description) return { error: 'Informe a descrição da transação.' };
+  if (!Number.isFinite(amount) || amount <= 0 || amount > 1_000_000_000_000) {
+    return { error: 'Informe um valor válido.' };
+  }
+
+  return { transaction: { city, type, date, description, counterparty, amount } };
+}
+
+app.get('/api/transacoes', (req, res) => {
+  const cityData = TRANSACTION_CITIES.map(name => ({ name, mayor: 'Não Eleito', mayorAvatar: null }));
+  const sortedTransactions = [...transactions].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
+  res.set('Cache-Control', 'no-store');
+  return res.json({ cities: cityData, transactions: sortedTransactions });
+});
+
+app.post('/api/transacoes', requireAuth, (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: 'Apenas o administrador pode cadastrar transações.' });
+  const parsed = readTransactionInput(req.body);
+  if (parsed.error) return res.status(400).json({ error: parsed.error });
+
+  const now = new Date().toISOString();
+  const transaction = {
+    id: crypto.randomBytes(8).toString('hex'),
+    ...parsed.transaction,
+    createdBy: req.user.id,
+    createdAt: now,
+    updatedAt: now,
+  };
+  transactions.push(transaction);
+  saveData();
+  return res.status(201).json({ transaction });
+});
+
+app.patch('/api/transacoes/:id', requireAuth, (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: 'Apenas o administrador pode editar transações.' });
+  const transaction = transactions.find(item => item.id === req.params.id);
+  if (!transaction) return res.status(404).json({ error: 'Transação não encontrada.' });
+  const parsed = readTransactionInput(req.body);
+  if (parsed.error) return res.status(400).json({ error: parsed.error });
+
+  Object.assign(transaction, parsed.transaction, { updatedAt: new Date().toISOString() });
+  saveData();
+  return res.json({ transaction });
+});
+
+app.delete('/api/transacoes/:id', requireAuth, (req, res) => {
+  if (!isAdmin(req)) return res.status(403).json({ error: 'Apenas o administrador pode remover transações.' });
+  const index = transactions.findIndex(item => item.id === req.params.id);
+  if (index === -1) return res.status(404).json({ error: 'Transação não encontrada.' });
+  transactions.splice(index, 1);
+  saveData();
+  return res.json({ ok: true });
 });
 
 // Admin: create company
@@ -1052,6 +1124,7 @@ app.get('/auth/me', (req, res) => {
 // Keeping auth-server private avoids publishing .env and the local backup JSON.
 app.use('/auth-server', (req, res) => res.sendStatus(404));
 app.get('/parceiros.html', (req, res) => res.redirect(301, '/entidades.html'));
+app.get(['/licitacoes', '/licitacoes.html'], (req, res) => res.redirect(301, '/transacoes.html'));
 app.use(express.static(path.join(__dirname, '..'), { dotfiles: 'deny' }));
 
 async function startServer() {
