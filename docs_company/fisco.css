@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Oswald:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 :root {
   color-scheme: dark;
@@ -109,20 +109,20 @@ button, a, input, select { -webkit-tap-highlight-color: transparent; }
 .empty-state { padding: 42px 18px; color: var(--fisco-muted); text-align: center; font-size: 13px; }
 .fisco-footnote { margin: 14px 0 0; color: #78837b; font-size: 11px; line-height: 1.6; }
 
-.site-footer { width: min(1180px, 100%); margin: 0 auto; padding: 22px 28px 30px; display: flex; justify-content: space-between; gap: 16px; border-top: 1px solid var(--fisco-line); color: var(--fisco-muted); font-size: 11px; }
+.site-footer { width: min(1180px, 100%); margin: 0 auto; padding: 22px 28px 30px; display: flex; justify-content: space-between; gap: 16px; color: var(--fisco-muted); font-size: 11px; }
 .site-footer a { color: var(--fisco-blue); }
 .site-footer-links { display: flex; flex-wrap: wrap; gap: 14px; }
 .site-footer-links button { padding: 0; border: 0; background: transparent; color: var(--fisco-muted); font: inherit; cursor: pointer; }
 .site-footer-links button:hover { color: var(--fisco-blue); }
 
 .transparency-main { padding-top: 132px; }
-.github-hero { min-height: 420px; display: grid; grid-template-columns: 1.15fr .85fr; align-items: center; gap: 36px; border-bottom: 1px solid var(--fisco-line); }
+.github-hero { min-height: 420px; display: grid; grid-template-columns: 1.15fr .85fr; align-items: center; gap: 36px; }
 .github-wordmark { margin: 0; font-size: 140px; font-weight: 700; line-height: .9; }
 .github-wordmark span { color: var(--fisco-blue); }
-.home-wordmark { margin: 0; font-size: 128px; font-weight: 700; line-height: .82; }
+.home-wordmark { margin: 0; font-family: 'Oswald', var(--fisco-sans); font-size: 128px; font-weight: 700; line-height: .82; }
 .home-wordmark span { color: var(--fisco-blue); }
 .home-wordmark small { display: block; margin-top: 12px; color: var(--fisco-text); font-size: 56px; font-weight: 500; line-height: 1; }
-.home-expresso-title { margin: 24px 0 0; color: var(--fisco-text); font-size: 40px; font-weight: 600; line-height: 1.1; }
+.home-expresso-title { margin: 24px 0 0; color: var(--fisco-text); font-family: 'Oswald', var(--fisco-sans); font-size: 40px; font-weight: 600; line-height: 1.1; }
 .home-expresso-title span { color: var(--fisco-orange); }
 .github-copy { max-width: 590px; margin: 20px 0 0; color: var(--fisco-muted); font-size: 16px; line-height: 1.7; }
 .home-audit-copy { max-width: 530px; margin-top: 12px; font-size: 14px; }
